@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,16 +35,20 @@ public abstract class UserEntity implements UserDetails {
   public UserEntity() {
   }
 
-
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    String role = this.getClass().getSimpleName().toUpperCase();
+    String role = Hibernate.getClass(this).getSimpleName().replace("Entity", "").toUpperCase();
     return List.of(new SimpleGrantedAuthority("ROLE_" + role));
   }
 
   @Override
   public String getUsername() {
     return this.email;
+  }
+
+  @Override
+  public String getPassword() {
+    return this.password;
   }
 
   @Override
@@ -96,10 +101,6 @@ public abstract class UserEntity implements UserDetails {
 
   public void setEmail(String email) {
     this.email = email;
-  }
-
-  public String getPassword() {
-    return password;
   }
 
   public void setPassword(String password) {

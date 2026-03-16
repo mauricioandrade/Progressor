@@ -4,6 +4,7 @@ import com.mauricioandrade.progressor.infrastructure.api.dto.LoginRequest;
 import com.mauricioandrade.progressor.infrastructure.api.dto.LoginResponse;
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
 import com.mauricioandrade.progressor.infrastructure.security.jwt.TokenService;
+import org.hibernate.Hibernate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,7 +32,9 @@ public class AuthController {
     var auth = this.authenticationManager.authenticate(usernamePassword);
 
     var user = (UserEntity) auth.getPrincipal();
-    var role = user.getClass().getSimpleName().toUpperCase();
+
+    String role = Hibernate.getClass(user).getSimpleName().replace("Entity", "").toUpperCase();
+
     var token = tokenService.generateToken(user.getEmail(), role);
 
     return ResponseEntity.ok(new LoginResponse(token));

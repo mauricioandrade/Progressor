@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import org.hibernate.Hibernate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,19 +29,19 @@ public class SecurityFilter extends OncePerRequestFilter {
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
     var token = this.recoverToken(request);
+
     if (token != null) {
       var email = tokenService.validateToken(token);
 
-      if (!email.isEmpty()) {
-        var user = userRepository.findByEmail(email);
+      if (email != null && !email.isEmpty()) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+          String roleName = Hibernate.getClass(user).getSimpleName().replace("Entity", "")
+              .toUpperCase();
 
-        if (user.isPresent()) {
-          var role = user.get().getClass().getSimpleName().toUpperCase();
-          var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
-          var authentication = new UsernamePasswordAuthenticationToken(user.get(), null,
-              authorities);
+          var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleName));
+          var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
           SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+        });
       }
     }
     filterChain.doFilter(request, response);
@@ -48,9 +49,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 
   private String recoverToken(HttpServletRequest request) {
     var authHeader = request.getHeader("Authorization");
-    if (authHeader == null) {
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
       return null;
     }
-    return authHeader.replace("Bearer ", "");
+    return authHeader.substring(7);
   }
 }

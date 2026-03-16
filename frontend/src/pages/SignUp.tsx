@@ -13,6 +13,7 @@ export function SignUp() {
         name: '',
         email: '',
         password: '',
+        birthDate: '',
         cref: '',
         crn: ''
     });
@@ -22,19 +23,33 @@ export function SignUp() {
         e.preventDefault();
         setIsLoading(true);
 
+        const nameParts = formData.name.trim().split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ');
+
+        const payload: any = {
+            firstName,
+            lastName: lastName || "",
+            email: formData.email,
+            password: formData.password,
+            birthDate: formData.birthDate,
+        };
+
+        if (role === 'PERSONAL') payload.cref = formData.cref;
+        if (role === 'NUTRITIONIST') payload.crn = formData.crn;
+
         const endpoint = {
             STUDENT: '/users/register/student',
-            PERSONAL: '/users/register/personal-trainer',
+            PERSONAL: '/users/register/personal',
             NUTRITIONIST: '/users/register/nutritionist'
         }[role];
 
         try {
-            await api.post(endpoint, formData);
-            console.log(`Registration successful for role: ${role}`);
+            await api.post(endpoint, payload);
             alert(t('signup.success'));
             navigate('/login');
-        } catch (error) {
-            console.error('Registration failed:', error);
+        } catch (error: any) {
+            console.error('Registration failed:', error.response?.data || error.message);
             alert(t('login.errors.unexpected'));
         } finally {
             setIsLoading(false);
@@ -84,6 +99,18 @@ export function SignUp() {
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         required
                     />
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-500 ml-1">
+                            {t('signup.birthdate_label')}
+                        </label>
+                        <input
+                            type="date"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-700"
+                            onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                            required
+                        />
+                    </div>
 
                     {role === 'PERSONAL' && (
                         <input

@@ -1,6 +1,7 @@
 package com.mauricioandrade.progressor.infrastructure.security.config;
 
 import com.mauricioandrade.progressor.infrastructure.security.jwt.SecurityFilter;
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,12 +37,12 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             authorize -> authorize.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/users/register/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users/register/personal").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users/register/student").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                 .permitAll().requestMatchers("/api/workouts/**")
-                .hasAnyRole("PERSONALTRAINERENTITY", "STUDENTENTITY")
-                .requestMatchers("/api/reports/**")
-                .hasAnyRole("PERSONALTRAINERENTITY", "STUDENTENTITY").anyRequest().authenticated())
+                .hasAnyRole("PERSONALTRAINER", "STUDENT").requestMatchers("/api/reports/**")
+                .hasAnyRole("PERSONALTRAINER", "STUDENT").anyRequest().authenticated())
         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class).build();
   }
 
@@ -59,10 +60,11 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
     configuration.setAllowCredentials(true);
+
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;
