@@ -27,6 +27,8 @@ public class UserMapper {
       mapCommonFields(domain, entity);
       entity.setPersonalTrainerId(stu.getPersonalTrainerId());
       entity.setNutritionistId(stu.getNutritionistId());
+      entity.setDailyWaterGoal(stu.getDailyWaterGoal());
+      entity.setCurrentWaterIntake(stu.getCurrentWaterIntake());
       return entity;
     }
     throw new IllegalArgumentException("Unknown User type");

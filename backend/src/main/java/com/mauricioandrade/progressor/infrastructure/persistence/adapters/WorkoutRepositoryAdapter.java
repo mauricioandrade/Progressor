@@ -23,4 +23,16 @@ public class WorkoutRepositoryAdapter implements WorkoutRepository {
         .map(domain -> WorkoutExerciseMapper.toEntity(domain, studentId)).toList();
     springDataRepository.saveAll(entities);
   }
+
+  @Override
+  public List<WorkoutExercise> findByStudentId(UUID studentId) {
+    return springDataRepository.findByStudentId(studentId).stream()
+        .map(WorkoutExerciseMapper::toDomain).toList();
+  }
+
+  @Override
+  public List<WorkoutExercise> findByStudentIdAndScheduledDay(UUID studentId, String day) {
+    return springDataRepository.findByStudentIdAndScheduledDayContaining(studentId, day).stream()
+        .map(WorkoutExerciseMapper::toDomain).toList();
+  }
 }

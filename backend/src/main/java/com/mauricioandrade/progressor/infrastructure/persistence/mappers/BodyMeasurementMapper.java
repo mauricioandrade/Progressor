@@ -10,6 +10,8 @@ public class BodyMeasurementMapper {
     entity.setId(domain.getId());
     entity.setStudentId(domain.getStudentId());
     entity.setRecordedAt(domain.getRecordedAt());
+    entity.setWeight(domain.getWeight());
+    entity.setBodyFatPercentage(domain.getBodyFatPercentage());
     entity.setRightBicep(domain.getRightBicep());
     entity.setLeftBicep(domain.getLeftBicep());
     entity.setChest(domain.getChest());
@@ -22,6 +24,14 @@ public class BodyMeasurementMapper {
     entity.setLeftCalf(domain.getLeftCalf());
     return entity;
   }
+
+  public static BodyMeasurement toDomain(BodyMeasurementEntity entity) {
+    BodyMeasurement measurement = new BodyMeasurement(entity.getId(), entity.getStudentId(),
+        entity.getRecordedAt());
+    measurement.updateMeasurements(entity.getWeight(), entity.getBodyFatPercentage(),
+        entity.getRightBicep(), entity.getLeftBicep(), entity.getChest(),
+        entity.getWaist(), entity.getAbdomen(), entity.getHips(), entity.getLeftThigh(),
+        entity.getRightThigh(), entity.getRightCalf(), entity.getLeftCalf());
+    return measurement;
+  }
 }
-
-
