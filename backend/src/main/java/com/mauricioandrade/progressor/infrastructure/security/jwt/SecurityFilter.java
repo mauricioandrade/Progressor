@@ -1,6 +1,7 @@
 package com.mauricioandrade.progressor.infrastructure.security.jwt;
 
-import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataUserRepository;
+import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.services.AuthorizationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import org.hibernate.Hibernate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -18,11 +20,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class SecurityFilter extends OncePerRequestFilter {
 
   private final TokenService tokenService;
-  private final SpringDataUserRepository userRepository;
+  private final AuthorizationService authorizationService;
 
-  public SecurityFilter(TokenService tokenService, SpringDataUserRepository userRepository) {
+  public SecurityFilter(TokenService tokenService, AuthorizationService authorizationService) {
     this.tokenService = tokenService;
-    this.userRepository = userRepository;
+    this.authorizationService = authorizationService;
   }
 
   @Override
@@ -34,14 +36,15 @@ public class SecurityFilter extends OncePerRequestFilter {
       var email = tokenService.validateToken(token);
 
       if (email != null && !email.isEmpty()) {
-        userRepository.findByEmail(email).ifPresent(user -> {
+        try {
+          var user = (UserEntity) authorizationService.loadUserByUsername(email);
           String roleName = Hibernate.getClass(user).getSimpleName().replace("Entity", "")
               .toUpperCase();
-
           var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleName));
           var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
           SecurityContextHolder.getContext().setAuthentication(authentication);
-        });
+        } catch (UsernameNotFoundException ignored) {
+        }
       }
     }
     filterChain.doFilter(request, response);

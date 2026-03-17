@@ -16,10 +16,11 @@ public class TokenService {
   @Value("${api.security.token.secret:my-secret-key-progressor-v1}")
   private String secret;
 
-  public String generateToken(String email, String role) {
+  public String generateToken(String email, String role, String userId) {
     try {
       Algorithm algorithm = Algorithm.HMAC256(secret);
-      return JWT.create().withIssuer("progressor-api").withSubject(email).withClaim("role", role)
+      return JWT.create().withIssuer("progressor-api").withSubject(email)
+          .withClaim("role", role).withClaim("userId", userId)
           .withExpiresAt(generateExpirationDate()).sign(algorithm);
     } catch (JWTCreationException exception) {
       throw new RuntimeException("Error while generating token", exception);
