@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+  name="MealPlan" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+  resourceBundle="reports.report_labels">
+
+  <parameter name="studentName" class="java.lang.String"/>
+  <parameter name="professionalName" class="java.lang.String"/>
+  <parameter name="issuedOn" class="java.lang.String"/>
+  <parameter name="planName" class="java.lang.String"/>
+  <parameter name="planGoal" class="java.lang.String"/>
+  <parameter name="totalCalories" class="java.lang.String"/>
+  <parameter name="totalProtein" class="java.lang.String"/>
+  <parameter name="totalCarbs" class="java.lang.String"/>
+  <parameter name="totalFat" class="java.lang.String"/>
+
+  <field name="mealTime" class="java.lang.String"/>
+  <field name="mealTimeLabel" class="java.lang.String"/>
+  <field name="foodName" class="java.lang.String"/>
+  <field name="quantity" class="java.lang.String"/>
+  <field name="calories" class="java.lang.String"/>
+  <field name="protein" class="java.lang.String"/>
+  <field name="carbs" class="java.lang.String"/>
+  <field name="fat" class="java.lang.String"/>
+
+  <group name="MealGroup" isStartNewPage="false">
+    <groupExpression><![CDATA[$F{mealTime}]]></groupExpression>
+    <groupHeader>
+      <band height="42">
+        <!-- Meal time header: light purple bg with left accent -->
+        <rectangle>
+          <reportElement x="0" y="4" width="555" height="22" backcolor="#EDE9FE" forecolor="#EDE9FE"/>
+          <graphicElement><pen lineWidth="0"/></graphicElement>
+        </rectangle>
+        <rectangle>
+          <reportElement x="0" y="4" width="4" height="22" backcolor="#7C3AED" forecolor="#7C3AED"/>
+          <graphicElement><pen lineWidth="0"/></graphicElement>
+        </rectangle>
+        <textField>
+          <reportElement x="12" y="4" width="543" height="22" forecolor="#4C1D95"/>
+          <textElement verticalAlignment="Middle">
+            <font size="9" isBold="true" fontName="SansSerif"/>
+          </textElement>
+          <textFieldExpression><![CDATA[$F{mealTimeLabel}]]></textFieldExpression>
+        </textField>
+        <!-- Column headers row -->
+        <rectangle>
+          <reportElement x="0" y="26" width="555" height="16" backcolor="#F3F4F6" forecolor="#F3F4F6"/>
+          <graphicElement><pen lineWidth="0"/></graphicElement>
+        </rectangle>
+        <textField>
+          <reportElement x="8" y="26" width="185" height="16" forecolor="#6B7280"/>
+          <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+          <textFieldExpression><![CDATA[$R{report.col.food}]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="193" y="26" width="65" height="16" forecolor="#6B7280"/>
+          <textElement textAlignment="Center" verticalAlignment="Middle"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+          <textFieldExpression><![CDATA[$R{report.col.qty}]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="258" y="26" width="72" height="16" forecolor="#6B7280"/>
+          <textElement textAlignment="Center" verticalAlignment="Middle"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+          <textFieldExpression><![CDATA[$R{report.col.calories}]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="330" y="26" width="72" height="16" forecolor="#6B7280"/>
+          <textElement textAlignment="Center" verticalAlignment="Middle"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+          <textFieldExpression><![CDATA[$R{report.col.protein}]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="402" y="26" width="72" height="16" forecolor="#6B7280"/>
+          <textElement textAlignment="Center" verticalAlignment="Middle"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+          <textFieldExpression><![CDATA[$R{report.col.carbs}]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="474" y="26" width="81" height="16" forecolor="#6B7280"/>
+          <textElement textAlignment="Center" verticalAlignment="Middle"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+          <textFieldExpression><![CDATA[$R{report.col.fat}]]></textFieldExpression>
+        </textField>
+      </band>
+    </groupHeader>
+  </group>
+
+  <title>
+    <band height="140">
+      <!-- Dark header background -->
+      <rectangle>
+        <reportElement x="0" y="0" width="555" height="76" backcolor="#111827" forecolor="#111827"/>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+      <!-- P logo circle -->
+      <ellipse>
+        <reportElement x="20" y="16" width="42" height="42" backcolor="#7C3AED" forecolor="#7C3AED"/>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </ellipse>
+      <!-- P letter -->
+      <staticText>
+        <reportElement x="20" y="16" width="42" height="42" forecolor="#FFFFFF"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="22" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <text><![CDATA[P]]></text>
+      </staticText>
+      <!-- PROGRESSOR brand -->
+      <staticText>
+        <reportElement x="72" y="12" width="200" height="26" forecolor="#FFFFFF"/>
+        <textElement verticalAlignment="Middle">
+          <font size="17" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <text><![CDATA[PROGRESSOR]]></text>
+      </staticText>
+      <!-- Subtitle (i18n) -->
+      <textField>
+        <reportElement x="72" y="40" width="200" height="24" forecolor="#9CA3AF"/>
+        <textElement verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$R{report.mealplan.subtitle}]]></textFieldExpression>
+      </textField>
+      <!-- Report title (right, i18n) -->
+      <textField>
+        <reportElement x="280" y="20" width="255" height="30" forecolor="#FFFFFF"/>
+        <textElement textAlignment="Right" verticalAlignment="Middle">
+          <font size="15" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$R{report.mealplan.title}]]></textFieldExpression>
+      </textField>
+
+      <!-- Metadata row background -->
+      <rectangle>
+        <reportElement x="0" y="76" width="555" height="44" backcolor="#F9FAFB" forecolor="#F9FAFB"/>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+      <!-- STUDENT label -->
+      <textField>
+        <reportElement x="8" y="80" width="180" height="12" forecolor="#9CA3AF"/>
+        <textElement><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+        <textFieldExpression><![CDATA[$R{report.label.student}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="8" y="93" width="180" height="24" forecolor="#111827"/>
+        <textElement verticalAlignment="Middle">
+          <font size="10" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{studentName}]]></textFieldExpression>
+      </textField>
+      <!-- PROFESSIONAL label -->
+      <textField>
+        <reportElement x="200" y="80" width="180" height="12" forecolor="#9CA3AF"/>
+        <textElement><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+        <textFieldExpression><![CDATA[$R{report.label.professional}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="200" y="93" width="180" height="24" forecolor="#111827"/>
+        <textElement verticalAlignment="Middle">
+          <font size="10" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{professionalName}]]></textFieldExpression>
+      </textField>
+      <!-- ISSUED ON label -->
+      <textField>
+        <reportElement x="430" y="80" width="125" height="12" forecolor="#9CA3AF"/>
+        <textElement textAlignment="Right"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+        <textFieldExpression><![CDATA[$R{report.label.issued}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="430" y="93" width="125" height="24" forecolor="#111827"/>
+        <textElement textAlignment="Right" verticalAlignment="Middle">
+          <font size="10" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{issuedOn}]]></textFieldExpression>
+      </textField>
+
+      <!-- Plan meta row -->
+      <rectangle>
+        <reportElement x="0" y="120" width="555" height="20" backcolor="#F3F4F6" forecolor="#F3F4F6"/>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+      <textField>
+        <reportElement x="8" y="120" width="60" height="20" forecolor="#9CA3AF"/>
+        <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+        <textFieldExpression><![CDATA[$R{report.label.plan}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="68" y="120" width="230" height="20" forecolor="#374151"/>
+        <textElement verticalAlignment="Middle"><font size="8" fontName="SansSerif"/></textElement>
+        <textFieldExpression><![CDATA[$P{planName}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="300" y="120" width="55" height="20" forecolor="#9CA3AF"/>
+        <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="SansSerif"/></textElement>
+        <textFieldExpression><![CDATA[$R{report.label.goal}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="355" y="120" width="200" height="20" forecolor="#374151"/>
+        <textElement verticalAlignment="Middle"><font size="8" fontName="SansSerif"/></textElement>
+        <textFieldExpression><![CDATA[$P{planGoal}]]></textFieldExpression>
+      </textField>
+    </band>
+  </title>
+
+  <detail>
+    <band height="24">
+      <rectangle>
+        <reportElement x="0" y="0" width="555" height="24" backcolor="#F9FAFB" forecolor="#F9FAFB">
+          <printWhenExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></printWhenExpression>
+        </reportElement>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+      <textField isBlankWhenNull="true">
+        <reportElement x="8" y="0" width="185" height="24" forecolor="#111827"/>
+        <textElement verticalAlignment="Middle">
+          <font size="9" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{foodName}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="193" y="0" width="65" height="24" forecolor="#374151"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="258" y="0" width="72" height="24" forecolor="#374151"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{calories}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="330" y="0" width="72" height="24" forecolor="#374151"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{protein}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="402" y="0" width="72" height="24" forecolor="#374151"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{carbs}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="474" y="0" width="81" height="24" forecolor="#374151"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{fat}]]></textFieldExpression>
+      </textField>
+    </band>
+  </detail>
+
+  <pageFooter>
+    <band height="20">
+      <line>
+        <reportElement x="0" y="0" width="555" height="1" forecolor="#E5E7EB"/>
+      </line>
+      <textField>
+        <reportElement x="0" y="4" width="340" height="16" forecolor="#9CA3AF"/>
+        <textElement verticalAlignment="Middle">
+          <font size="7" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$R{report.footer}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="340" y="4" width="215" height="16" forecolor="#9CA3AF"/>
+        <textElement textAlignment="Right" verticalAlignment="Middle">
+          <font size="7" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$R{report.page} + " " + $V{PAGE_NUMBER}]]></textFieldExpression>
+      </textField>
+    </band>
+  </pageFooter>
+
+  <summary>
+    <band height="50">
+      <line>
+        <reportElement x="0" y="4" width="555" height="1" forecolor="#E5E7EB"/>
+      </line>
+      <rectangle>
+        <reportElement x="0" y="8" width="555" height="32" backcolor="#1F2937" forecolor="#1F2937"/>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+      <textField>
+        <reportElement x="8" y="8" width="185" height="32" forecolor="#FFFFFF"/>
+        <textElement verticalAlignment="Middle">
+          <font size="9" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$R{report.label.daily.totals}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="258" y="8" width="72" height="32" forecolor="#A78BFA"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{totalCalories}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="330" y="8" width="72" height="32" forecolor="#A78BFA"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{totalProtein}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="402" y="8" width="72" height="32" forecolor="#A78BFA"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{totalCarbs}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="474" y="8" width="81" height="32" forecolor="#A78BFA"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" isBold="true" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{totalFat}]]></textFieldExpression>
+      </textField>
+    </band>
+  </summary>
+</jasperReport>

@@ -2,24 +2,20 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-  name="WorkoutSheet" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+  name="ProgressReport" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
   resourceBundle="reports.report_labels">
 
   <parameter name="studentName" class="java.lang.String"/>
   <parameter name="professionalName" class="java.lang.String"/>
   <parameter name="issuedOn" class="java.lang.String"/>
-  <parameter name="totalTonnage" class="java.lang.Double"/>
+  <parameter name="initialDate" class="java.lang.String"/>
+  <parameter name="currentDate" class="java.lang.String"/>
 
-  <field name="name" class="java.lang.String"/>
-  <field name="sets" class="java.lang.Integer"/>
-  <field name="repetitions" class="java.lang.Integer"/>
-  <field name="measurementType" class="java.lang.String"/>
-  <field name="weightInKg" class="java.lang.Double"/>
-  <field name="tonnage" class="java.lang.Double"/>
-  <field name="restTime" class="java.lang.Integer"/>
-  <field name="videoUrl" class="java.lang.String"/>
-  <field name="workoutLabel" class="java.lang.String"/>
-  <field name="scheduledDays" class="java.lang.String"/>
+  <field name="metric" class="java.lang.String"/>
+  <field name="initial" class="java.lang.String"/>
+  <field name="current" class="java.lang.String"/>
+  <field name="difference" class="java.lang.String"/>
+  <field name="improved" class="java.lang.Boolean"/>
 
   <title>
     <band height="120">
@@ -55,7 +51,7 @@
         <textElement verticalAlignment="Middle">
           <font size="9" fontName="SansSerif"/>
         </textElement>
-        <textFieldExpression><![CDATA[$R{report.workout.subtitle}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$R{report.progress.subtitle}]]></textFieldExpression>
       </textField>
       <!-- Report title (right, i18n) -->
       <textField>
@@ -63,7 +59,7 @@
         <textElement textAlignment="Right" verticalAlignment="Middle">
           <font size="15" isBold="true" fontName="SansSerif"/>
         </textElement>
-        <textFieldExpression><![CDATA[$R{report.workout.title}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$R{report.progress.title}]]></textFieldExpression>
       </textField>
 
       <!-- Metadata row background -->
@@ -120,116 +116,86 @@
         <graphicElement><pen lineWidth="0"/></graphicElement>
       </rectangle>
       <textField>
-        <reportElement x="8" y="0" width="155" height="28" forecolor="#E5E7EB"/>
+        <reportElement x="8" y="0" width="192" height="28" forecolor="#E5E7EB"/>
         <textElement verticalAlignment="Middle"><font size="8" isBold="true" fontName="SansSerif"/></textElement>
-        <textFieldExpression><![CDATA[$R{report.col.exercise}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$R{report.col.metric}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="163" y="0" width="40" height="28" forecolor="#E5E7EB"/>
+        <reportElement x="200" y="0" width="100" height="28" forecolor="#E5E7EB"/>
         <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true" fontName="SansSerif"/></textElement>
-        <textFieldExpression><![CDATA[$R{report.col.sets}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$R{report.col.initial}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="203" y="0" width="40" height="28" forecolor="#E5E7EB"/>
+        <reportElement x="300" y="0" width="100" height="28" forecolor="#E5E7EB"/>
         <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true" fontName="SansSerif"/></textElement>
-        <textFieldExpression><![CDATA[$R{report.col.reps}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$R{report.col.current}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="243" y="0" width="65" height="28" forecolor="#E5E7EB"/>
+        <reportElement x="400" y="0" width="155" height="28" forecolor="#E5E7EB"/>
         <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true" fontName="SansSerif"/></textElement>
-        <textFieldExpression><![CDATA[$R{report.col.weight}]]></textFieldExpression>
-      </textField>
-      <textField>
-        <reportElement x="308" y="0" width="55" height="28" forecolor="#E5E7EB"/>
-        <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true" fontName="SansSerif"/></textElement>
-        <textFieldExpression><![CDATA[$R{report.col.rest}]]></textFieldExpression>
-      </textField>
-      <textField>
-        <reportElement x="363" y="0" width="70" height="28" forecolor="#E5E7EB"/>
-        <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true" fontName="SansSerif"/></textElement>
-        <textFieldExpression><![CDATA[$R{report.col.tonnage}]]></textFieldExpression>
-      </textField>
-      <textField>
-        <reportElement x="433" y="0" width="122" height="28" forecolor="#E5E7EB"/>
-        <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true" fontName="SansSerif"/></textElement>
-        <textFieldExpression><![CDATA[$R{report.col.days}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$R{report.col.difference}]]></textFieldExpression>
       </textField>
     </band>
   </columnHeader>
 
   <detail>
-    <band height="40">
+    <band height="32">
       <rectangle>
-        <reportElement x="0" y="0" width="555" height="40" backcolor="#F9FAFB" forecolor="#F9FAFB">
+        <reportElement x="0" y="0" width="555" height="32" backcolor="#F9FAFB" forecolor="#F9FAFB">
           <printWhenExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></printWhenExpression>
         </reportElement>
         <graphicElement><pen lineWidth="0"/></graphicElement>
       </rectangle>
-      <!-- Exercise name (bold) -->
       <textField isBlankWhenNull="true">
-        <reportElement x="8" y="4" width="155" height="18" forecolor="#111827"/>
+        <reportElement x="8" y="0" width="192" height="32" forecolor="#111827"/>
         <textElement verticalAlignment="Middle">
           <font size="9" isBold="true" fontName="SansSerif"/>
         </textElement>
-        <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{metric}]]></textFieldExpression>
       </textField>
-      <!-- Workout label (secondary text) -->
       <textField isBlankWhenNull="true">
-        <reportElement x="8" y="22" width="155" height="14" forecolor="#9CA3AF">
-          <printWhenExpression><![CDATA[$F{workoutLabel} != null && !$F{workoutLabel}.isEmpty()]]></printWhenExpression>
+        <reportElement x="200" y="0" width="100" height="32" forecolor="#374151"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{initial}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="300" y="0" width="100" height="32" forecolor="#374151"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{current}]]></textFieldExpression>
+      </textField>
+      <!-- Improved (green) -->
+      <textField isBlankWhenNull="true">
+        <reportElement x="400" y="0" width="155" height="32" forecolor="#16A34A">
+          <printWhenExpression><![CDATA[Boolean.TRUE.equals($F{improved})]]></printWhenExpression>
         </reportElement>
-        <textElement verticalAlignment="Middle">
-          <font size="7" fontName="SansSerif"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$F{workoutLabel}]]></textFieldExpression>
-      </textField>
-      <!-- Sets -->
-      <textField isBlankWhenNull="true">
-        <reportElement x="163" y="0" width="40" height="40" forecolor="#374151"/>
-        <textElement textAlignment="Center" verticalAlignment="Middle">
-          <font size="9" fontName="SansSerif"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$F{sets}]]></textFieldExpression>
-      </textField>
-      <!-- Reps -->
-      <textField isBlankWhenNull="true">
-        <reportElement x="203" y="0" width="40" height="40" forecolor="#374151"/>
-        <textElement textAlignment="Center" verticalAlignment="Middle">
-          <font size="9" fontName="SansSerif"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$F{repetitions}]]></textFieldExpression>
-      </textField>
-      <!-- Weight -->
-      <textField isBlankWhenNull="true">
-        <reportElement x="243" y="0" width="65" height="40" forecolor="#374151"/>
-        <textElement textAlignment="Center" verticalAlignment="Middle">
-          <font size="9" fontName="SansSerif"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$F{weightInKg} != null ? $F{weightInKg} + " kg" : "—"]]></textFieldExpression>
-      </textField>
-      <!-- Rest -->
-      <textField isBlankWhenNull="true">
-        <reportElement x="308" y="0" width="55" height="40" forecolor="#374151"/>
-        <textElement textAlignment="Center" verticalAlignment="Middle">
-          <font size="9" fontName="SansSerif"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$F{restTime} != null ? $F{restTime} + "s" : "—"]]></textFieldExpression>
-      </textField>
-      <!-- Tonnage (purple) -->
-      <textField isBlankWhenNull="true">
-        <reportElement x="363" y="0" width="70" height="40" forecolor="#7C3AED"/>
         <textElement textAlignment="Center" verticalAlignment="Middle">
           <font size="9" isBold="true" fontName="SansSerif"/>
         </textElement>
-        <textFieldExpression><![CDATA[$F{tonnage} != null ? String.format("%.1f kg", $F{tonnage}) : "—"]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{difference}]]></textFieldExpression>
       </textField>
-      <!-- Scheduled days -->
+      <!-- Worsened (red) -->
       <textField isBlankWhenNull="true">
-        <reportElement x="433" y="0" width="122" height="40" forecolor="#374151"/>
+        <reportElement x="400" y="0" width="155" height="32" forecolor="#DC2626">
+          <printWhenExpression><![CDATA[Boolean.FALSE.equals($F{improved})]]></printWhenExpression>
+        </reportElement>
         <textElement textAlignment="Center" verticalAlignment="Middle">
-          <font size="8" fontName="SansSerif"/>
+          <font size="9" isBold="true" fontName="SansSerif"/>
         </textElement>
-        <textFieldExpression><![CDATA[$F{scheduledDays} != null ? $F{scheduledDays} : "—"]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{difference}]]></textFieldExpression>
+      </textField>
+      <!-- Neutral (gray) -->
+      <textField isBlankWhenNull="true">
+        <reportElement x="400" y="0" width="155" height="32" forecolor="#6B7280">
+          <printWhenExpression><![CDATA[$F{improved} == null]]></printWhenExpression>
+        </reportElement>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font size="9" fontName="SansSerif"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$F{difference}]]></textFieldExpression>
       </textField>
     </band>
   </detail>
@@ -255,27 +221,4 @@
       </textField>
     </band>
   </pageFooter>
-
-  <summary>
-    <band height="36">
-      <rectangle>
-        <reportElement x="0" y="6" width="555" height="28" backcolor="#1F2937" forecolor="#1F2937"/>
-        <graphicElement><pen lineWidth="0"/></graphicElement>
-      </rectangle>
-      <textField>
-        <reportElement x="8" y="6" width="355" height="28" forecolor="#9CA3AF"/>
-        <textElement verticalAlignment="Middle">
-          <font size="8" isBold="true" fontName="SansSerif"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$R{report.tonnage.total}]]></textFieldExpression>
-      </textField>
-      <textField isBlankWhenNull="true">
-        <reportElement x="363" y="6" width="192" height="28" forecolor="#A78BFA"/>
-        <textElement textAlignment="Center" verticalAlignment="Middle">
-          <font size="10" isBold="true" fontName="SansSerif"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$P{totalTonnage} != null ? String.format("%.1f kg", $P{totalTonnage}) : "—"]]></textFieldExpression>
-      </textField>
-    </band>
-  </summary>
 </jasperReport>
