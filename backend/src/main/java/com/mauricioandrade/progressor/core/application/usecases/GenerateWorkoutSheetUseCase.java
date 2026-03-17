@@ -1,6 +1,7 @@
 package com.mauricioandrade.progressor.core.application.usecases;
 
 import com.mauricioandrade.progressor.core.application.ports.WorkoutReportGenerator;
+import java.util.Locale;
 import java.util.UUID;
 
 public class GenerateWorkoutSheetUseCase {
@@ -11,7 +12,7 @@ public class GenerateWorkoutSheetUseCase {
     this.reportGenerator = reportGenerator;
   }
 
-  public byte[] execute(UUID studentId) {
-    return reportGenerator.generateWorkoutSheet(studentId);
+  public byte[] execute(UUID studentId, Locale locale) {
+    return reportGenerator.generateWorkoutSheet(studentId, locale);
   }
 }

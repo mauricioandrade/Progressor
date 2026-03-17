@@ -8,6 +8,8 @@ public class Student extends User {
 
   private UUID personalTrainerId;
   private UUID nutritionistId;
+  private int dailyWaterGoal;
+  private int currentWaterIntake;
 
   public Student(UUID id, String firstName, String lastName, Email email, String password,
       LocalDate birthDate) {
@@ -28,5 +30,25 @@ public class Student extends User {
 
   public UUID getNutritionistId() {
     return nutritionistId;
+  }
+
+  public int getDailyWaterGoal() {
+    return dailyWaterGoal;
+  }
+
+  public void setDailyWaterGoal(int dailyWaterGoal) {
+    this.dailyWaterGoal = dailyWaterGoal;
+  }
+
+  public int getCurrentWaterIntake() {
+    return currentWaterIntake;
+  }
+
+  public void setCurrentWaterIntake(int currentWaterIntake) {
+    this.currentWaterIntake = currentWaterIntake;
+  }
+
+  public void addWaterIntake(int amount) {
+    this.currentWaterIntake += amount;
   }
 }

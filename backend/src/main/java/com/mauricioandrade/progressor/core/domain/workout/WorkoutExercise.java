@@ -14,6 +14,10 @@ public class WorkoutExercise {
   private Integer timeInSeconds;
   private String cadence;
   private Double tonnage;
+  private String videoUrl;
+  private Integer restTime;
+  private String workoutLabel;
+  private String scheduledDays;
 
   public WorkoutExercise(UUID id, String name, Integer sets, Integer repetitions,
       MeasurementType measurementType) {
@@ -69,6 +73,14 @@ public class WorkoutExercise {
     this.cadence = cadence;
   }
 
+  public void applyVideoUrl(String videoUrl) {
+    this.videoUrl = videoUrl;
+  }
+
+  public void applyRestTime(Integer restTime) {
+    this.restTime = restTime;
+  }
+
   private void calculateTonnage() {
     if (this.weightInKg != null) {
       this.tonnage = this.sets * this.repetitions * this.weightInKg;
@@ -113,5 +125,26 @@ public class WorkoutExercise {
 
   public Double getTonnage() {
     return tonnage;
+  }
+
+  public String getVideoUrl() {
+    return videoUrl;
+  }
+
+  public Integer getRestTime() {
+    return restTime;
+  }
+
+  public void applySchedule(String workoutLabel, String scheduledDays) {
+    this.workoutLabel = workoutLabel;
+    this.scheduledDays = scheduledDays;
+  }
+
+  public String getWorkoutLabel() {
+    return workoutLabel;
+  }
+
+  public String getScheduledDays() {
+    return scheduledDays;
   }
 }

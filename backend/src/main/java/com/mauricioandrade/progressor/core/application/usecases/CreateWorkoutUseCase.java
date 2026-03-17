@@ -44,6 +44,17 @@ public class CreateWorkoutUseCase {
       if (exerciseDto.cadence() != null) {
         exercise.applyCadence(exerciseDto.cadence());
       }
+      if (exerciseDto.videoUrl() != null) {
+        exercise.applyVideoUrl(exerciseDto.videoUrl());
+      }
+      if (exerciseDto.restTime() != null) {
+        exercise.applyRestTime(exerciseDto.restTime());
+      }
+      String joined = (exerciseDto.scheduledDays() != null && !exerciseDto.scheduledDays().isEmpty())
+          ? String.join(",", exerciseDto.scheduledDays()) : null;
+      if (exerciseDto.workoutLabel() != null || joined != null) {
+        exercise.applySchedule(exerciseDto.workoutLabel(), joined);
+      }
 
       workoutExercises.add(exercise);
     }

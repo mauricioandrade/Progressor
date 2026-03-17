@@ -7,4 +7,8 @@ import java.util.UUID;
 public interface WorkoutRepository {
 
   void saveAll(List<WorkoutExercise> exercises, UUID studentId);
+
+  List<WorkoutExercise> findByStudentId(UUID studentId);
+
+  List<WorkoutExercise> findByStudentIdAndScheduledDay(UUID studentId, String day);
 }

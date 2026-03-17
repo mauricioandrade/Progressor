@@ -22,6 +22,10 @@ public class WorkoutExerciseEntity {
   private Integer timeInSeconds;
   private String cadence;
   private Double tonnage;
+  private String videoUrl;
+  private Integer restTime;
+  private String workoutLabel;
+  private String scheduledDays;
 
   public WorkoutExerciseEntity() {
   }
@@ -112,5 +116,37 @@ public class WorkoutExerciseEntity {
 
   public void setTonnage(Double tonnage) {
     this.tonnage = tonnage;
+  }
+
+  public String getVideoUrl() {
+    return videoUrl;
+  }
+
+  public void setVideoUrl(String videoUrl) {
+    this.videoUrl = videoUrl;
+  }
+
+  public Integer getRestTime() {
+    return restTime;
+  }
+
+  public void setRestTime(Integer restTime) {
+    this.restTime = restTime;
+  }
+
+  public String getWorkoutLabel() {
+    return workoutLabel;
+  }
+
+  public void setWorkoutLabel(String workoutLabel) {
+    this.workoutLabel = workoutLabel;
+  }
+
+  public String getScheduledDays() {
+    return scheduledDays;
+  }
+
+  public void setScheduledDays(String scheduledDays) {
+    this.scheduledDays = scheduledDays;
   }
 }

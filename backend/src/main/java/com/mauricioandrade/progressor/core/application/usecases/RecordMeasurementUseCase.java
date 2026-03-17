@@ -25,7 +25,8 @@ public class RecordMeasurementUseCase {
 
     BodyMeasurement measurement = new BodyMeasurement(null, request.studentId(), LocalDate.now());
 
-    measurement.updateMeasurements(request.rightBicep(), request.leftBicep(), request.chest(),
+    measurement.updateMeasurements(request.weight(), request.bodyFatPercentage(),
+        request.rightBicep(), request.leftBicep(), request.chest(),
         request.waist(), request.abdomen(), request.hips(), request.leftThigh(),
         request.rightThigh(), request.rightCalf(), request.leftCalf());
 

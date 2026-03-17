@@ -16,6 +16,8 @@ public class BodyMeasurementEntity {
   private UUID studentId;
   private LocalDate recordedAt;
 
+  private Double weight;
+  private Double bodyFatPercentage;
   private Double rightBicep;
   private Double leftBicep;
   private Double chest;
@@ -52,6 +54,22 @@ public class BodyMeasurementEntity {
 
   public void setRecordedAt(LocalDate recordedAt) {
     this.recordedAt = recordedAt;
+  }
+
+  public Double getWeight() {
+    return weight;
+  }
+
+  public void setWeight(Double weight) {
+    this.weight = weight;
+  }
+
+  public Double getBodyFatPercentage() {
+    return bodyFatPercentage;
+  }
+
+  public void setBodyFatPercentage(Double bodyFatPercentage) {
+    this.bodyFatPercentage = bodyFatPercentage;
   }
 
   public Double getRightBicep() {

@@ -9,6 +9,8 @@ public class BodyMeasurement {
   private final UUID studentId;
   private final LocalDate recordedAt;
 
+  private Double weight;
+  private Double bodyFatPercentage;
   private Double rightBicep;
   private Double leftBicep;
   private Double chest;
@@ -30,10 +32,12 @@ public class BodyMeasurement {
     this.recordedAt = recordedAt != null ? recordedAt : LocalDate.now();
   }
 
-  public void updateMeasurements(Double rightBicep, Double leftBicep, Double chest, Double waist,
-      Double abdomen, Double hips, Double leftThigh, Double rightThigh, Double rightCalf,
-      Double leftCalf) {
+  public void updateMeasurements(Double weight, Double bodyFatPercentage, Double rightBicep,
+      Double leftBicep, Double chest, Double waist, Double abdomen, Double hips, Double leftThigh,
+      Double rightThigh, Double rightCalf, Double leftCalf) {
 
+    this.weight = weight;
+    this.bodyFatPercentage = bodyFatPercentage;
     this.rightBicep = rightBicep;
     this.leftBicep = leftBicep;
     this.chest = chest;
@@ -56,6 +60,14 @@ public class BodyMeasurement {
 
   public LocalDate getRecordedAt() {
     return recordedAt;
+  }
+
+  public Double getWeight() {
+    return weight;
+  }
+
+  public Double getBodyFatPercentage() {
+    return bodyFatPercentage;
   }
 
   public Double getRightBicep() {
