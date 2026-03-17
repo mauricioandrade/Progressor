@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { Sun, Moon } from 'lucide-react';
 import { api } from '../services/api';
+import { useTheme } from '../hooks/useTheme';
 
-type UserRole = 'STUDENT' | 'PERSONAL' | 'NUTRITIONIST';
+type UserRole = 'STUDENT' | 'PERSONALTRAINER' | 'NUTRITIONIST';
 
 export function SignUp() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { theme, toggleTheme } = useTheme();
     const [role, setRole] = useState<UserRole>('STUDENT');
+
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         password: '',
         birthDate: '',
@@ -18,105 +23,147 @@ export function SignUp() {
         crn: ''
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const roleLabels: Record<UserRole, string> = {
+        STUDENT: t('signup.role_student'),
+        PERSONALTRAINER: t('signup.role_personal'),
+        NUTRITIONIST: t('signup.role_nutritionist')
+    };
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setErrorMessage('');
 
-        const nameParts = formData.name.trim().split(' ');
-        const firstName = nameParts[0];
-        const lastName = nameParts.slice(1).join(' ');
-
-        const payload: any = {
-            firstName,
-            lastName: lastName || "",
+        const payload: Record<string, string> = {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
             email: formData.email,
             password: formData.password,
             birthDate: formData.birthDate,
         };
 
-        if (role === 'PERSONAL') payload.cref = formData.cref;
+        if (role === 'PERSONALTRAINER') payload.cref = formData.cref;
         if (role === 'NUTRITIONIST') payload.crn = formData.crn;
 
-        const endpoint = {
+        const endpoint: Record<UserRole, string> = {
             STUDENT: '/users/register/student',
-            PERSONAL: '/users/register/personal',
+            PERSONALTRAINER: '/users/register/personal',
             NUTRITIONIST: '/users/register/nutritionist'
-        }[role];
+        };
 
         try {
-            await api.post(endpoint, payload);
-            alert(t('signup.success'));
+            await api.post(endpoint[role], payload);
             navigate('/login');
         } catch (error: any) {
-            console.error('Registration failed:', error.response?.data || error.message);
-            alert(t('login.errors.unexpected'));
+            if (error.response?.status === 409) {
+                setErrorMessage(t('login.errors.server_error'));
+            } else if (error.response?.status === 400) {
+                setErrorMessage(t('login.errors.unexpected'));
+            } else {
+                setErrorMessage(t('login.errors.server_error'));
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
+    const inputClass = "w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none";
+
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+        <div className="min-h-screen bg-gray-100 dark:bg-slate-950 flex items-center justify-center p-4 transition-colors">
+            <button
+                onClick={toggleTheme}
+                className="fixed top-4 right-4 w-9 h-9 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-200/60 dark:border-gray-800">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-blue-600 mb-2">{t('signup.title')}</h1>
-                    <p className="text-gray-500">{t('signup.subtitle')}</p>
+                    <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-2" style={{ fontFamily: "'Inter Variable', Inter, sans-serif" }}>
+                        Progressor
+                    </h1>
+                    <p className="text-gray-500 dark:text-gray-400">{t('signup.subtitle')}</p>
                 </div>
 
-                <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
-                    {(['STUDENT', 'PERSONAL', 'NUTRITIONIST'] as UserRole[]).map((r) => (
+                <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-xl mb-6">
+                    {(Object.keys(roleLabels) as UserRole[]).map((r) => (
                         <button
                             key={r}
                             onClick={() => setRole(r)}
                             type="button"
-                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${role === r ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}
+                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${role === r ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
                         >
-                            {t(`signup.role_${r.toLowerCase()}`)}
+                            {roleLabels[r]}
                         </button>
                     ))}
                 </div>
 
+                {errorMessage && (
+                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg text-sm">
+                        {errorMessage}
+                    </div>
+                )}
+
                 <form onSubmit={handleRegister} className="space-y-4">
-                    <input
-                        type="text"
-                        placeholder={t('signup.name_label')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <input
+                            type="text"
+                            placeholder={t('signup.first_name_label')}
+                            className={inputClass}
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                            required
+                        />
+                        <input
+                            type="text"
+                            placeholder={t('signup.last_name_label')}
+                            className={inputClass}
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                            required
+                        />
+                    </div>
+
                     <input
                         type="email"
                         placeholder={t('signup.email_label')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className={inputClass}
+                        value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
                     />
+
                     <input
                         type="password"
                         placeholder={t('signup.password_label')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className={inputClass}
+                        value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         required
                     />
 
                     <div className="space-y-1">
-                        <label className="text-xs font-semibold text-gray-500 ml-1">
+                        <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 ml-1">
                             {t('signup.birthdate_label')}
                         </label>
                         <input
                             type="date"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-700"
+                            className={inputClass}
+                            value={formData.birthDate}
                             onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
                             required
                         />
                     </div>
 
-                    {role === 'PERSONAL' && (
+                    {role === 'PERSONALTRAINER' && (
                         <input
                             type="text"
                             placeholder={t('signup.cref_label')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className={inputClass}
+                            value={formData.cref}
                             onChange={(e) => setFormData({ ...formData, cref: e.target.value })}
                             required
                         />
@@ -126,7 +173,8 @@ export function SignUp() {
                         <input
                             type="text"
                             placeholder={t('signup.crn_label')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className={inputClass}
+                            value={formData.crn}
                             onChange={(e) => setFormData({ ...formData, crn: e.target.value })}
                             required
                         />
@@ -135,13 +183,13 @@ export function SignUp() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
+                        className="w-full bg-blue-600 text-white font-semibold py-2 rounded-2xl hover:bg-blue-700 disabled:opacity-50 transition-all"
                     >
                         {isLoading ? '...' : t('signup.button')}
                     </button>
                 </form>
 
-                <div className="mt-6 text-center text-sm text-gray-600">
+                <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                     {t('signup.have_account')}{' '}
                     <Link to="/login" className="text-blue-600 hover:underline font-medium">
                         {t('signup.login_link')}

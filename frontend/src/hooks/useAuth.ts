@@ -2,7 +2,8 @@ import { jwtDecode } from 'jwt-decode';
 
 interface TokenPayload {
     sub: string;
-    role: 'STUDENT' | 'PERSONAL' | 'NUTRITIONIST';
+    role: 'STUDENT' | 'PERSONALTRAINER' | 'NUTRITIONIST';
+    userId: string;
     exp: number;
 }
 
@@ -25,8 +26,9 @@ export function useAuth() {
         return {
             signed: true,
             user: {
+                id: decoded.userId,
                 email: decoded.sub,
-                role: decoded.role
+                role: decoded.role,
             }
         };
     } catch {

@@ -1,1 +1,39 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.011em;
+}
+
+body {
+  margin: 0;
+}
+
+/* Slate dark mode background */
+.dark body,
+.dark {
+  background-color: #0f172a;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
