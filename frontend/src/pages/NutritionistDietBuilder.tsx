@@ -12,6 +12,7 @@ interface Patient { id: string; name: string; email: string; }
 interface FoodResult {
     foodId: string;
     name: string;
+    brandName?: string | null;
     caloriesKcal: number;
     proteinG: number;
     carbsG: number;
@@ -356,7 +357,14 @@ export function NutritionistDietBuilder() {
                                 {foodResults.map(food => (
                                     <div key={food.foodId} className="flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-gray-800 border border-black/10 dark:border-white/15 gap-3 shadow-sm">
                                         <div className="min-w-0">
-                                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{food.name}</p>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{food.name}</p>
+                                                {food.brandName && (
+                                                    <span className="ml-2 text-xs px-2 py-0.5 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded-full">
+                                                        {food.brandName}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                                                 per 100g ·{' '}
                                                 <span className={MACRO_COLORS.calories}>{food.caloriesKcal.toFixed(0)} kcal</span>

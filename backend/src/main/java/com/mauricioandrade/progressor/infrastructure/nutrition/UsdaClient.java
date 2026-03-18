@@ -21,6 +21,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 /**
  * USDA FoodData Central implementation of {@link FoodSearchPort}.
  *
+ * <p><strong>Superseded by {@link FatSecretNutritionClient} as of V1.2.</strong>
+ * {@code @Component} is intentionally removed so Spring does not register this as an
+ * active {@link FoodSearchPort} bean. Kept for reference and easy rollback.
+ *
  * <p>Uses the JDK {@link HttpClient} (Java 11+) for reliable HTTPS with:
  * <ul>
  *   <li>30-second connect + request timeout (avoids I/O hangs)</li>
@@ -32,7 +36,6 @@ import org.springframework.web.util.UriComponentsBuilder;
  * <p>Nutrient IDs: 1003 = Protein | 1004 = Fat | 1005 = Carbs | 1008 = Energy (kcal).
  * Foundation and SR Legacy values are per 100 g.
  */
-@Component
 public class UsdaClient implements FoodSearchPort {
 
   private static final Logger log = LoggerFactory.getLogger(UsdaClient.class);
@@ -170,7 +173,7 @@ public class UsdaClient implements FoodSearchPort {
           calories, protein, carbs, fat);
 
       log.debug("[USDA] '{}' → '{}' cal={} prot={} carbs={} fat={}", usdaName, name, calories, protein, carbs, fat);
-      results.add(new FoodItemResponse(id, name, calories, protein, carbs, fat, description));
+      results.add(new FoodItemResponse(id, name, null, calories, protein, carbs, fat, description));
     }
 
     return results;
