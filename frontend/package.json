@@ -35,7 +35,7 @@
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "@vitest/ui": "^2.1.9",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.4",
@@ -48,7 +48,7 @@
     "tailwindcss": "^4.2.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.0",
+    "vite": "7.1.0",
     "vitest": "^2.1.9"
   }
 }
