@@ -2,6 +2,7 @@ package com.mauricioandrade.progressor.infrastructure.config;
 
 import com.mauricioandrade.progressor.core.application.ports.CheckInRepository;
 import com.mauricioandrade.progressor.core.application.ports.ConnectionRequestRepository;
+import com.mauricioandrade.progressor.core.application.ports.EmailPort;
 import com.mauricioandrade.progressor.core.application.ports.FoodSearchPort;
 import com.mauricioandrade.progressor.core.application.ports.WorkoutBlockRepository;
 import com.mauricioandrade.progressor.core.application.ports.WorkoutPlanRepository;
@@ -65,15 +66,20 @@ import com.mauricioandrade.progressor.core.application.usecases.RegisterStudentU
 import com.mauricioandrade.progressor.core.application.usecases.SearchFoodUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.SetWaterGoalUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.UpdateAvatarUseCase;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class UseCaseConfig {
 
+  @Value("${app.frontend-url:http://localhost:5173}")
+  private String frontendUrl;
+
   @Bean
-  public ForgotPasswordUseCase forgotPasswordUseCase(UserRepository userRepository) {
-    return new ForgotPasswordUseCase(userRepository);
+  public ForgotPasswordUseCase forgotPasswordUseCase(UserRepository userRepository,
+      EmailPort emailPort) {
+    return new ForgotPasswordUseCase(userRepository, emailPort, frontendUrl);
   }
 
   @Bean

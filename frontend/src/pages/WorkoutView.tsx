@@ -81,7 +81,7 @@ export function WorkoutView() {
 
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [editModal, setEditModal] = useState<WorkoutExercise | null>(null);
-    const [editForm, setEditForm] = useState<Partial<WorkoutExercise> & { scheduledDaysText?: string }>({});
+    const [editForm, setEditForm] = useState<Partial<WorkoutExercise> & { scheduledDaysArr?: string[] }>({});
     const [isSavingEdit, setIsSavingEdit] = useState(false);
 
     function loadExercises() {
@@ -111,21 +111,24 @@ export function WorkoutView() {
         }
     }
 
+    const ALL_EDIT_DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const;
+    const EDIT_DAY_LABELS: Record<string, string> = {
+        MON: 'SEG', TUE: 'TER', WED: 'QUA', THU: 'QUI', FRI: 'SEX', SAT: 'SÁB', SUN: 'DOM',
+    };
+
     function openEditModal(ex: WorkoutExercise) {
         setEditModal(ex);
-        setEditForm({
-            ...ex,
-            scheduledDaysText: ex.scheduledDays ?? '',
-        });
+        const daysArr = ex.scheduledDays
+            ? String(ex.scheduledDays).split(',').map(d => d.trim()).filter(Boolean)
+            : [];
+        setEditForm({ ...ex, scheduledDaysArr: daysArr });
     }
 
     async function handleSaveEdit() {
         if (!editModal) return;
         setIsSavingEdit(true);
         try {
-            const scheduledDays = editForm.scheduledDaysText
-                ? editForm.scheduledDaysText.split(',').map(d => d.trim()).filter(Boolean)
-                : [];
+            const scheduledDays = editForm.scheduledDaysArr ?? [];
             const { data } = await api.put(`/workouts/${editModal.id}`, {
                 name: editForm.name,
                 sets: Number(editForm.sets),
@@ -361,7 +364,36 @@ export function WorkoutView() {
                             <input className={inputClass} placeholder={t('edit_exercise.video_url')} value={editForm.videoUrl ?? ''} onChange={e => setEditForm(f => ({ ...f, videoUrl: e.target.value }))} />
                             <input className={inputClass} type="number" min={0} placeholder={t('edit_exercise.rest_time')} value={editForm.restTime ?? ''} onChange={e => setEditForm(f => ({ ...f, restTime: e.target.value ? Number(e.target.value) : null }))} />
                             <input className={inputClass} placeholder={t('edit_exercise.label')} value={editForm.workoutLabel ?? ''} onChange={e => setEditForm(f => ({ ...f, workoutLabel: e.target.value }))} />
-                            <input className={inputClass} placeholder={t('edit_exercise.days')} value={editForm.scheduledDaysText ?? ''} onChange={e => setEditForm(f => ({ ...f, scheduledDaysText: e.target.value }))} />
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">{t('edit_exercise.days')}</p>
+                                <div className="flex gap-1">
+                                    {ALL_EDIT_DAYS.map(day => {
+                                        const selected = (editForm.scheduledDaysArr ?? []).includes(day);
+                                        return (
+                                            <button
+                                                key={day}
+                                                type="button"
+                                                onClick={() => setEditForm(f => {
+                                                    const arr = f.scheduledDaysArr ?? [];
+                                                    return {
+                                                        ...f,
+                                                        scheduledDaysArr: selected
+                                                            ? arr.filter(d => d !== day)
+                                                            : [...arr, day],
+                                                    };
+                                                })}
+                                                className={`flex-1 py-1.5 rounded-xl text-[10px] font-bold transition-all active:scale-95 ${
+                                                    selected
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400'
+                                                }`}
+                                            >
+                                                {EDIT_DAY_LABELS[day]}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
                         <div className="flex gap-2 pt-1">
                             <button onClick={() => setEditModal(null)} className="flex-1 py-2.5 rounded-2xl text-sm font-medium bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95">

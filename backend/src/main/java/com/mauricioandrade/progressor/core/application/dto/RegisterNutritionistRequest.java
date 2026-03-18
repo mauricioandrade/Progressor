@@ -3,6 +3,7 @@ package com.mauricioandrade.progressor.core.application.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import java.time.LocalDate;
 
 public record RegisterNutritionistRequest(
@@ -10,7 +11,7 @@ public record RegisterNutritionistRequest(
     @NotBlank String lastName,
     @Email @NotBlank String email,
     @NotBlank String password,
-    @NotNull LocalDate birthDate,
+    @Past(message = "Data de nascimento inválida") @NotNull LocalDate birthDate,
     @NotBlank String crn) {
 
 }

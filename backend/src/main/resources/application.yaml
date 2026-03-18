@@ -30,6 +30,20 @@ spring:
     baseline-on-migrate: true
     baseline-version: 1
 
+  mail:
+    host: smtp.resend.com
+    port: 465
+    username: resend
+    password: ${RESEND_API_KEY:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
 
 encryption:
   key: ${ENCRYPTION_KEY:0000000000000000000000000000000000000000000000000000000000000000}

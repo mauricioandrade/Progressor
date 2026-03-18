@@ -1,19 +1,21 @@
 package com.mauricioandrade.progressor.core.application.usecases;
 
+import com.mauricioandrade.progressor.core.application.ports.EmailPort;
 import com.mauricioandrade.progressor.core.application.ports.UserRepository;
 import java.time.LocalDateTime;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ForgotPasswordUseCase {
 
-  private static final Logger log = LoggerFactory.getLogger(ForgotPasswordUseCase.class);
-
   private final UserRepository userRepository;
+  private final EmailPort emailPort;
+  private final String frontendUrl;
 
-  public ForgotPasswordUseCase(UserRepository userRepository) {
+  public ForgotPasswordUseCase(UserRepository userRepository, EmailPort emailPort,
+      String frontendUrl) {
     this.userRepository = userRepository;
+    this.emailPort = emailPort;
+    this.frontendUrl = frontendUrl;
   }
 
   public void execute(String email) {
@@ -21,7 +23,14 @@ public class ForgotPasswordUseCase {
       String token = UUID.randomUUID().toString();
       LocalDateTime expiry = LocalDateTime.now().plusHours(1);
       userRepository.saveResetToken(userId, token, expiry);
-      log.info("[MOCK EMAIL] Password reset link for {}: http://localhost:5173/reset-password?token={}", email, token);
+
+      // Look up first name for personalised email
+      String firstName = userRepository.findById(userId)
+          .map(u -> u.getFirstName())
+          .orElse("usuário");
+
+      String resetLink = frontendUrl + "/reset-password?token=" + token;
+      emailPort.sendPasswordReset(email, firstName, resetLink);
     });
   }
 }

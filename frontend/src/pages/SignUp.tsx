@@ -24,6 +24,21 @@ export function SignUp() {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [birthDateError, setBirthDateError] = useState('');
+
+    const today = new Date();
+    const maxDate = today.toISOString().split('T')[0];
+
+    function validateBirthDate(dateStr: string): string {
+        if (!dateStr) return '';
+        const date = new Date(dateStr + 'T00:00:00');
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        if (date >= now) return t('signup.error_future_date');
+        const minAgeDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+        if (date > minAgeDate) return t('signup.error_min_age');
+        return '';
+    }
 
     const roleLabels: Record<UserRole, string> = {
         STUDENT: t('signup.role_student'),
@@ -33,6 +48,8 @@ export function SignUp() {
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
+        const bdErr = validateBirthDate(formData.birthDate);
+        if (bdErr) { setBirthDateError(bdErr); return; }
         setIsLoading(true);
         setErrorMessage('');
 
@@ -60,7 +77,8 @@ export function SignUp() {
             if (error.response?.status === 409) {
                 setErrorMessage(t('login.errors.server_error'));
             } else if (error.response?.status === 400) {
-                setErrorMessage(t('login.errors.unexpected'));
+                const msg = error.response?.data?.message;
+                setErrorMessage(msg || t('login.errors.unexpected'));
             } else {
                 setErrorMessage(t('login.errors.server_error'));
             }
@@ -151,11 +169,18 @@ export function SignUp() {
                         </label>
                         <input
                             type="date"
-                            className={inputClass}
+                            className={`${inputClass}${birthDateError ? ' border-red-400 focus:ring-red-400' : ''}`}
                             value={formData.birthDate}
-                            onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                            max={maxDate}
+                            onChange={(e) => {
+                                setFormData({ ...formData, birthDate: e.target.value });
+                                setBirthDateError(validateBirthDate(e.target.value));
+                            }}
                             required
                         />
+                        {birthDateError && (
+                            <p className="text-xs text-red-500 ml-1">{birthDateError}</p>
+                        )}
                     </div>
 
                     {role === 'PERSONALTRAINER' && (

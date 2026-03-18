@@ -26,7 +26,10 @@ public abstract class User {
       throw new IllegalArgumentException("Password is required");
     }
     if (birthDate == null || birthDate.isAfter(LocalDate.now())) {
-      throw new IllegalArgumentException("Invalid birth date");
+      throw new IllegalArgumentException("Data de nascimento inválida");
+    }
+    if (birthDate.isAfter(LocalDate.now().minusYears(10))) {
+      throw new IllegalArgumentException("A idade mínima é 10 anos");
     }
 
     this.id = id != null ? id : UUID.randomUUID();

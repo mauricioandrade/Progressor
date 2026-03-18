@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, Plus, Trash2, Loader2, UtensilsCrossed, SearchX } from 'lucide-react';
 import axios from 'axios';
@@ -99,16 +99,91 @@ export function NutritionistDietBuilder() {
     const [isSearchingFood, setIsSearchingFood] = useState(false);
     const [searchPerformed, setSearchPerformed] = useState(false);
 
+    const [planId, setPlanId] = useState<string | null>(null);
     const [cheatMeal, setCheatMeal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState('');
     const [saveError, setSaveError] = useState('');
 
     const searchRef = useRef<HTMLInputElement>(null);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         api.get('/users/my-students/nutritionist').then(r => setPatients(r.data)).catch(() => {});
     }, []);
+
+    // Load existing plan when patient is selected
+    useEffect(() => {
+        if (!selectedPatient) {
+            setPlanId(null);
+            setMeals({ BREAKFAST: [], LUNCH: [], DINNER: [], SNACK: [] });
+            setPlanName('');
+            setGoal('CUTTING');
+            setCheatMeal(false);
+            return;
+        }
+        api.get(`/nutrition/meal-plans/student/${selectedPatient}`)
+            .then(r => {
+                const plan = r.data;
+                if (!plan) return;
+                setPlanId(plan.id);
+                setPlanName(plan.name ?? '');
+                setGoal(plan.goal ?? 'CUTTING');
+                setCheatMeal(plan.cheatMeal ?? false);
+                const newMeals: Record<MealTime, MealEntry[]> = { BREAKFAST: [], LUNCH: [], DINNER: [], SNACK: [] };
+                for (const item of (plan.items ?? [])) {
+                    const mt = item.mealTime as MealTime;
+                    if (!MEAL_TIMES.includes(mt)) continue;
+                    const ratio = item.quantity > 0 ? 100 / item.quantity : 1;
+                    newMeals[mt].push({
+                        tempId: item.id,
+                        name: item.name,
+                        foodDescription: item.foodDescription ?? '',
+                        baseCalories: item.caloriesKcal * ratio,
+                        baseProtein: item.proteinG * ratio,
+                        baseCarbs: item.carbsG * ratio,
+                        baseFat: item.fatG * ratio,
+                        quantity: item.quantity,
+                        baseUnit: item.baseUnit ?? 'g',
+                    });
+                }
+                setMeals(newMeals);
+            })
+            .catch(() => { setPlanId(null); });
+    }, [selectedPatient]);
+
+    const doFoodSearch = useCallback(async (query: string) => {
+        if (!query.trim()) return;
+        setIsSearchingFood(true);
+        setFoodResults([]);
+        setSearchPerformed(false);
+        try {
+            const r = await api.get(`/nutrition/foods/search?q=${encodeURIComponent(query)}`);
+            setFoodResults(r.data ?? []);
+            setSearchPerformed(true);
+        } catch (err) {
+            setSearchPerformed(true);
+            if (axios.isAxiosError(err) && err.response?.data?.message) {
+                toast.error(err.response.data.message);
+            } else {
+                toast.error(t('toast.food_error'));
+            }
+        } finally {
+            setIsSearchingFood(false);
+        }
+    }, [t]);
+
+    // Debounced real-time search
+    useEffect(() => {
+        if (foodQuery.trim().length < 2) {
+            setFoodResults([]);
+            setSearchPerformed(false);
+            return;
+        }
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => doFoodSearch(foodQuery), 500);
+        return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }, [foodQuery, doFoodSearch]);
 
     if (!user) return null;
 
@@ -134,23 +209,8 @@ export function NutritionistDietBuilder() {
     async function handleFoodSearch(e: React.FormEvent) {
         e.preventDefault();
         if (!foodQuery.trim()) return;
-        setIsSearchingFood(true);
-        setFoodResults([]);
-        setSearchPerformed(false);
-        try {
-            const r = await api.get(`/nutrition/foods/search?q=${encodeURIComponent(foodQuery)}`);
-            setFoodResults(r.data ?? []);
-            setSearchPerformed(true);
-        } catch (err) {
-            setSearchPerformed(true);
-            if (axios.isAxiosError(err) && err.response?.data?.message) {
-                toast.error(err.response.data.message);
-            } else {
-                toast.error(t('toast.food_error'));
-            }
-        } finally {
-            setIsSearchingFood(false);
-        }
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        await doFoodSearch(foodQuery);
     }
 
     function addFood(food: FoodResult) {
@@ -209,18 +269,26 @@ export function NutritionistDietBuilder() {
                     };
                 })
             );
-            await api.post('/nutrition/meal-plans', {
+            const payload = {
                 studentId: selectedPatient,
                 name: planName || t('nutrition.my_diet_title'),
                 goal,
                 items,
                 cheatMeal,
-            });
+            };
+            if (planId) {
+                await api.put(`/nutrition/meal-plans/${planId}`, payload);
+            } else {
+                const res = await api.post('/nutrition/meal-plans', payload);
+                setPlanId(res.data?.id ?? null);
+            }
             setSaveSuccess(t('nutrition.save_success'));
             toast.success(t('toast.plan_saved'));
-            setMeals({ BREAKFAST: [], LUNCH: [], DINNER: [], SNACK: [] });
-            setPlanName('');
-            setCheatMeal(false);
+            if (!planId) {
+                setMeals({ BREAKFAST: [], LUNCH: [], DINNER: [], SNACK: [] });
+                setPlanName('');
+                setCheatMeal(false);
+            }
         } catch {
             setSaveError(t('login.errors.server_error'));
         } finally {

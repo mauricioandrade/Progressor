@@ -39,6 +39,8 @@ const resources = {
                 button: "Register",
                 have_account: "Already have an account?",
                 login_link: "Sign In",
+                error_future_date: "Invalid birth date",
+                error_min_age: "Minimum age is 10 years",
                 success: "Registration successful!"
             },
             sidebar: {
@@ -433,6 +435,7 @@ const resources = {
                 placeholder: "e.g. 75",
                 set_button: "Set Goal",
                 no_goal: "No goal set",
+                set_goal_hint: "Tap the pencil icon to set your weight goal.",
                 progress_label: "Progress toward goal",
                 current: "Current",
                 goal: "Goal",
@@ -513,7 +516,9 @@ const resources = {
                 button: "Cadastrar",
                 have_account: "Já tem uma conta?",
                 login_link: "Entrar",
-                success: "Cadastro realizado com sucesso!"
+                success: "Cadastro realizado com sucesso!",
+                error_future_date: "Data de nascimento inválida",
+                error_min_age: "A idade mínima é 10 anos"
             },
             sidebar: {
                 dashboard: "Dashboard",
@@ -907,6 +912,7 @@ const resources = {
                 placeholder: "Ex.: 75",
                 set_button: "Definir Meta",
                 no_goal: "Meta não definida",
+                set_goal_hint: "Toque no lápis para definir sua meta de peso.",
                 progress_label: "Progresso em direção à meta",
                 current: "Atual",
                 goal: "Meta",

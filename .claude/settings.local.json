@@ -17,7 +17,9 @@
       "Bash(JAVA_HOME=\"/c/Users/mauri/.jdks/openjdk-25.0.2\" ./mvnw test --no-transfer-progress)",
       "Bash(JAVA_HOME=\"/c/Users/mauri/.jdks/openjdk-25.0.2\" ./mvnw compile --no-transfer-progress)",
       "Bash(grep -E \"\\\\.\\(java\\)$\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(xargs cat:*)",
+      "Bash(xargs head:*)"
     ]
   }
 }
