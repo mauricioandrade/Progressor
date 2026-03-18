@@ -77,7 +77,11 @@ function MacroDonut({ protein, carbs, fat, calories }: { protein: number; carbs:
                         </Pie>
                         <Tooltip
                             contentStyle={{ fontSize: '11px', borderRadius: '10px', border: 'none', background: 'rgba(0,0,0,0.8)', color: '#fff' }}
+<<<<<<< HEAD
                             formatter={(value: any) => [value != null ? `${Number(value).toFixed(1)}g` : '', '']}
+=======
+                            formatter={(v: any) => [`${v?.toFixed(1)}g`, '']}
+>>>>>>> develop
                         />
                     </PieChart>
                 </ResponsiveContainer>
