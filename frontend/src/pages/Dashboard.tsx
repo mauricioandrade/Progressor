@@ -65,7 +65,7 @@ function MacroRing({ protein, carbs, fat, calories }: { protein: number; carbs: 
                         <Pie data={data} dataKey="value" innerRadius={34} outerRadius={54} strokeWidth={0} startAngle={90} endAngle={-270}>
                             {data.map((e, i) => <Cell key={i} fill={e.color} />)}
                         </Pie>
-                        <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px', border: 'none', background: 'rgba(0,0,0,0.8)', color: '#fff' }} formatter={(v: number) => [`${v.toFixed(1)}g`, '']} />
+                        <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px', border: 'none', background: 'rgba(0,0,0,0.8)', color: '#fff' }} formatter={(v: any) => [`${v?.toFixed(1)}g`, '']} />
                     </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -140,7 +140,6 @@ function WaterTile({ water, onAdd, onSetGoal }: { water: WaterIntake; onAdd: (n:
 }
 
 function PendingInvitesCard() {
-    const { t } = useTranslation();
     const [invites, setInvites] = useState<ConnectionInvite[]>([]);
     const [responding, setResponding] = useState<string | null>(null);
 

@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { LayoutGrid, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../services/api';
-import { useTranslation } from 'react-i18next';
 
 interface ExerciseLog {
     id: string;
@@ -50,7 +49,6 @@ interface Props {
 }
 
 export function WorkoutSpreadsheetView({ studentId }: Props) {
-    const { t } = useTranslation();
     const [plans, setPlans] = useState<PlanData[]>([]);
     const [history, setHistory] = useState<Record<string, ExerciseLog[]>>({});
     const [isLoading, setIsLoading] = useState(true);
