@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import {
     Dumbbell, Scale, Activity, Users, PenLine, ChevronRight,
-    Trophy, CalendarDays, UtensilsCrossed, Droplets, Pencil, Check, X, Play, Salad, Camera
+    Trophy, CalendarDays, UtensilsCrossed, Droplets, Pencil, Check, X, Play, Salad, Camera,
+    Bell, UserCheck, UserX
 } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
 import { ContributionGraph } from '../components/ContributionGraph';
@@ -24,6 +25,15 @@ interface PersonalRecord {
 }
 interface MealPlan { id: string; items: { proteinG: number; carbsG: number; fatG: number; caloriesKcal: number }[] }
 interface WaterIntake { dailyWaterGoal: number; currentWaterIntake: number; }
+
+interface ConnectionInvite {
+    id: string;
+    professionalId: string;
+    professionalName: string;
+    professionalRole: 'COACH' | 'NUTRI';
+    status: string;
+    createdAt: string;
+}
 
 const tile = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm p-5 transition-all duration-300';
 
@@ -129,8 +139,94 @@ function WaterTile({ water, onAdd, onSetGoal }: { water: WaterIntake; onAdd: (n:
     );
 }
 
+function PendingInvitesCard() {
+    const { t } = useTranslation();
+    const [invites, setInvites] = useState<ConnectionInvite[]>([]);
+    const [responding, setResponding] = useState<string | null>(null);
+
+    useEffect(() => {
+        api.get<ConnectionInvite[]>('/connections/pending')
+            .then(r => setInvites(r.data))
+            .catch(() => {});
+    }, []);
+
+    async function respond(requestId: string, accepted: boolean) {
+        setResponding(requestId);
+        try {
+            await api.post('/connections/respond', { requestId, accepted });
+            setInvites(prev => prev.filter(i => i.id !== requestId));
+            toast.success(accepted ? 'Convite aceito!' : 'Convite recusado.');
+        } catch {
+            toast.error('Erro ao responder convite.');
+        } finally {
+            setResponding(null);
+        }
+    }
+
+    if (invites.length === 0) return null;
+
+    return (
+        <div className={`${tile} border-amber-200/60 dark:border-amber-700/40 bg-amber-50/80 dark:bg-amber-900/20`}>
+            <div className="flex items-center gap-2 mb-3">
+                <div className="relative">
+                    <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center text-[8px] text-white font-bold">
+                        {invites.length}
+                    </span>
+                </div>
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                    Convites pendentes
+                </span>
+            </div>
+            <div className="space-y-2">
+                {invites.map(invite => (
+                    <div
+                        key={invite.id}
+                        className="flex items-center justify-between gap-3 p-3 bg-white/70 dark:bg-slate-800/50 rounded-2xl border border-black/5 dark:border-white/5"
+                    >
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                                {invite.professionalName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">
+                                    {invite.professionalRole === 'COACH' ? 'Personal Trainer' : 'Nutricionista'}{' '}
+                                    <span className="font-bold">{invite.professionalName}</span>
+                                </p>
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                                    {invite.professionalRole === 'COACH'
+                                        ? 'quer gerenciar os seus treinos'
+                                        : 'quer gerenciar a sua dieta'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                                onClick={() => respond(invite.id, false)}
+                                disabled={responding === invite.id}
+                                className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 transition-colors active:scale-95"
+                                title="Recusar"
+                            >
+                                <UserX className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => respond(invite.id, true)}
+                                disabled={responding === invite.id}
+                                className="w-8 h-8 flex items-center justify-center rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/40 disabled:opacity-50 transition-colors active:scale-95"
+                                title="Aceitar"
+                            >
+                                <UserCheck className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 const WEEK_DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const;
-const WEEK_DAY_LABELS: Record<string, string> = { MON: 'Mon', TUE: 'Tue', WED: 'Wed', THU: 'Thu', FRI: 'Fri', SAT: 'Sat', SUN: 'Sun' };
+const WEEK_DAY_LABELS: Record<string, string> = { MON: 'Seg', TUE: 'Ter', WED: 'Qua', THU: 'Qui', FRI: 'Sex', SAT: 'Sáb', SUN: 'Dom' };
 
 function getTodayCode(): string {
     const map = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -191,6 +287,9 @@ function StudentDashboard() {
 
     return (
         <div className="space-y-4">
+            {/* Pending invitations notification */}
+            <PendingInvitesCard />
+
             {/* Bento row 1 — 3 stat tiles */}
             <div className="grid grid-cols-3 gap-3 md:gap-4">
                 <div className={`${tile} flex flex-col gap-1`}>
