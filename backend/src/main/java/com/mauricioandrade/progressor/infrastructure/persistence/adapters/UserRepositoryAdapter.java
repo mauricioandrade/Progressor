@@ -3,8 +3,14 @@ package com.mauricioandrade.progressor.infrastructure.persistence.adapters;
 import com.mauricioandrade.progressor.core.application.ports.UserRepository;
 import com.mauricioandrade.progressor.core.domain.common.Email;
 import com.mauricioandrade.progressor.infrastructure.persistence.converters.SearchableEncryptedStringConverter;
+import com.mauricioandrade.progressor.core.domain.user.Nutritionist;
+import com.mauricioandrade.progressor.core.domain.user.PersonalTrainer;
 import com.mauricioandrade.progressor.core.domain.user.Student;
 import com.mauricioandrade.progressor.core.domain.user.User;
+import com.mauricioandrade.progressor.core.domain.common.Cref;
+import com.mauricioandrade.progressor.core.domain.common.Crn;
+import com.mauricioandrade.progressor.infrastructure.persistence.entities.NutritionistEntity;
+import com.mauricioandrade.progressor.infrastructure.persistence.entities.PersonalTrainerEntity;
 import com.mauricioandrade.progressor.infrastructure.persistence.mappers.UserMapper;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataStudentRepository;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataUserRepository;
@@ -46,6 +52,39 @@ public class UserRepositoryAdapter implements UserRepository {
   @Override
   public boolean existsById(UUID id) {
     return springDataRepository.existsById(id);
+  }
+
+  @Override
+  public Optional<User> findById(UUID id) {
+    return springDataRepository.findById(id).map(entity -> {
+      if (entity instanceof PersonalTrainerEntity pt) {
+        return (User) new PersonalTrainer(pt.getId(), pt.getFirstName(), pt.getLastName(),
+            new Email(pt.getEmail()), pt.getPassword(), pt.getBirthDate(), new Cref(pt.getCref()));
+      } else if (entity instanceof NutritionistEntity nut) {
+        return (User) new Nutritionist(nut.getId(), nut.getFirstName(), nut.getLastName(),
+            new Email(nut.getEmail()), nut.getPassword(), nut.getBirthDate(), new Crn(nut.getCrn()));
+      } else {
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public Optional<Student> findStudentByEmail(Email email) {
+    String enc = SearchableEncryptedStringConverter.encrypt(email.value());
+    return springDataStudentRepository.findByEmail(enc)
+        .or(() -> springDataStudentRepository.findByEmail(email.value()))
+        .map(entity -> {
+          Student student = new Student(entity.getId(), entity.getFirstName(), entity.getLastName(),
+              new Email(entity.getEmail()), entity.getPassword(), entity.getBirthDate());
+          if (entity.getPersonalTrainerId() != null) {
+            student.assignPersonalTrainer(entity.getPersonalTrainerId());
+          }
+          if (entity.getNutritionistId() != null) {
+            student.assignNutritionist(entity.getNutritionistId());
+          }
+          return student;
+        });
   }
 
   @Override

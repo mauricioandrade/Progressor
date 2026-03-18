@@ -14,4 +14,6 @@ public interface SpringDataWorkoutRepository extends JpaRepository<WorkoutExerci
   @Query("SELECT e FROM WorkoutExerciseEntity e WHERE e.studentId = :studentId AND e.scheduledDays LIKE %:day%")
   List<WorkoutExerciseEntity> findByStudentIdAndScheduledDayContaining(
       @Param("studentId") UUID studentId, @Param("day") String day);
+
+  List<WorkoutExerciseEntity> findByBlockId(UUID blockId);
 }

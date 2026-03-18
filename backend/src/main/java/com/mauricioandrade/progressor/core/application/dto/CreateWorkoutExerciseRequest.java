@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import java.util.UUID;
 
 public record CreateWorkoutExerciseRequest(
     @NotBlank String name,
@@ -17,6 +18,7 @@ public record CreateWorkoutExerciseRequest(
     String videoUrl,
     @Min(0) Integer restTime,
     String workoutLabel,
-    List<String> scheduledDays) {
+    List<String> scheduledDays,
+    UUID blockId) {
 
 }

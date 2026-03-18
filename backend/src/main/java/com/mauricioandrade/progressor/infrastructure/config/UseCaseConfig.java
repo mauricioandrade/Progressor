@@ -1,7 +1,16 @@
 package com.mauricioandrade.progressor.infrastructure.config;
 
 import com.mauricioandrade.progressor.core.application.ports.CheckInRepository;
+import com.mauricioandrade.progressor.core.application.ports.ConnectionRequestRepository;
 import com.mauricioandrade.progressor.core.application.ports.FoodSearchPort;
+import com.mauricioandrade.progressor.core.application.ports.WorkoutBlockRepository;
+import com.mauricioandrade.progressor.core.application.ports.WorkoutPlanRepository;
+import com.mauricioandrade.progressor.core.application.usecases.CreateWorkoutBlockUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.CreateWorkoutPlanUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetPendingConnectionRequestsUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetStudentWorkoutPlansUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.RespondToConnectionRequestUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.SendConnectionRequestUseCase;
 import com.mauricioandrade.progressor.core.application.ports.ProgressPhotoRepository;
 import com.mauricioandrade.progressor.core.application.usecases.AddProfessionalFeedbackUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.DeleteProfessionalFeedbackUseCase;
@@ -259,5 +268,43 @@ public class UseCaseConfig {
   public UpdateStudentNotesUseCase updateStudentNotesUseCase(
       ProgressPhotoRepository progressPhotoRepository) {
     return new UpdateStudentNotesUseCase(progressPhotoRepository);
+  }
+
+  @Bean
+  public SendConnectionRequestUseCase sendConnectionRequestUseCase(
+      ConnectionRequestRepository connectionRequestRepository, UserRepository userRepository) {
+    return new SendConnectionRequestUseCase(connectionRequestRepository, userRepository);
+  }
+
+  @Bean
+  public RespondToConnectionRequestUseCase respondToConnectionRequestUseCase(
+      ConnectionRequestRepository connectionRequestRepository, UserRepository userRepository) {
+    return new RespondToConnectionRequestUseCase(connectionRequestRepository, userRepository);
+  }
+
+  @Bean
+  public GetPendingConnectionRequestsUseCase getPendingConnectionRequestsUseCase(
+      ConnectionRequestRepository connectionRequestRepository) {
+    return new GetPendingConnectionRequestsUseCase(connectionRequestRepository);
+  }
+
+  @Bean
+  public CreateWorkoutPlanUseCase createWorkoutPlanUseCase(WorkoutPlanRepository workoutPlanRepository,
+      UserRepository userRepository) {
+    return new CreateWorkoutPlanUseCase(workoutPlanRepository, userRepository);
+  }
+
+  @Bean
+  public GetStudentWorkoutPlansUseCase getStudentWorkoutPlansUseCase(
+      WorkoutPlanRepository workoutPlanRepository, WorkoutBlockRepository workoutBlockRepository,
+      WorkoutRepository workoutRepository) {
+    return new GetStudentWorkoutPlansUseCase(workoutPlanRepository, workoutBlockRepository,
+        workoutRepository);
+  }
+
+  @Bean
+  public CreateWorkoutBlockUseCase createWorkoutBlockUseCase(
+      WorkoutBlockRepository workoutBlockRepository, WorkoutPlanRepository workoutPlanRepository) {
+    return new CreateWorkoutBlockUseCase(workoutBlockRepository, workoutPlanRepository);
   }
 }

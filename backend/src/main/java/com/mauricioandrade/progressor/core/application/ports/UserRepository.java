@@ -18,7 +18,11 @@ public interface UserRepository {
 
   boolean existsById(UUID id);
 
+  Optional<User> findById(UUID id);
+
   Optional<Student> findStudentById(UUID id);
+
+  Optional<Student> findStudentByEmail(Email email);
 
   List<Student> findStudentsByTrainerId(UUID trainerId);
 

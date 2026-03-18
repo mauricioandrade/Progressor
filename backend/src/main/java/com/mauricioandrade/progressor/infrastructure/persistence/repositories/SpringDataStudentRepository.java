@@ -18,4 +18,6 @@ public interface SpringDataStudentRepository extends JpaRepository<StudentEntity
 
   @Query("SELECT s FROM StudentEntity s WHERE s.email = :email AND s.nutritionistId IS NULL")
   Optional<StudentEntity> findUnassignedByEmailForNutritionist(String email);
+
+  Optional<StudentEntity> findByEmail(String email);
 }

@@ -18,6 +18,7 @@ public class WorkoutExercise {
   private Integer restTime;
   private String workoutLabel;
   private String scheduledDays;
+  private UUID blockId;
 
   public WorkoutExercise(UUID id, String name, Integer sets, Integer repetitions,
       MeasurementType measurementType) {
@@ -140,11 +141,19 @@ public class WorkoutExercise {
     this.scheduledDays = scheduledDays;
   }
 
+  public void assignToBlock(UUID blockId) {
+    this.blockId = blockId;
+  }
+
   public String getWorkoutLabel() {
     return workoutLabel;
   }
 
   public String getScheduledDays() {
     return scheduledDays;
+  }
+
+  public UUID getBlockId() {
+    return blockId;
   }
 }

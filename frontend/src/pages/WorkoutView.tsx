@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, X, CheckCircle, Timer, Download, Loader2 } from 'lucide-react';
+import { Play, X, CheckCircle, Timer, Download, Loader2, LayoutGrid, List } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Sidebar } from '../components/Sidebar';
 import { useAuth } from '../hooks/useAuth';
 import { useRestTimer } from '../contexts/RestTimerContext';
 import { api } from '../services/api';
+import { WorkoutSpreadsheetView } from '../components/WorkoutSpreadsheetView';
 
 interface WorkoutExercise {
     id: string;
@@ -75,6 +76,7 @@ export function WorkoutView() {
     const [showHistory, setShowHistory] = useState<Record<string, boolean>>({});
     const [isDownloading, setIsDownloading] = useState(false);
     const [todayExercises, setTodayExercises] = useState<TodayExercise[]>([]);
+    const [viewMode, setViewMode] = useState<'card' | 'spreadsheet'>('card');
 
     useEffect(() => {
         api.get('/workouts/my')
@@ -279,13 +281,40 @@ export function WorkoutView() {
                             {t('workout_view.title')}
                         </h2>
                         <div className="flex items-center gap-2">
-                            {totalVolume > 0 && (
+                            {totalVolume > 0 && viewMode === 'card' && (
                                 <div className="flex items-center gap-2 bg-purple-100/80 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-4 py-1.5 rounded-full text-sm font-medium">
                                     <span>{t('workout_view.total_volume')}</span>
                                     <strong>{totalVolume.toFixed(1)} kg</strong>
                                 </div>
                             )}
-                            {exercises.length > 0 && (
+
+                            {/* View toggle */}
+                            <div className="flex items-center bg-black/5 dark:bg-white/10 rounded-2xl p-1 gap-0.5">
+                                <button
+                                    onClick={() => setViewMode('card')}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                                        viewMode === 'card'
+                                            ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                    }`}
+                                >
+                                    <List className="w-3.5 h-3.5" />
+                                    Cards
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('spreadsheet')}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                                        viewMode === 'spreadsheet'
+                                            ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                    }`}
+                                >
+                                    <LayoutGrid className="w-3.5 h-3.5" />
+                                    Planilha
+                                </button>
+                            </div>
+
+                            {exercises.length > 0 && viewMode === 'card' && (
                                 <button
                                     onClick={handleDownloadPdf}
                                     disabled={isDownloading}
@@ -301,7 +330,15 @@ export function WorkoutView() {
                     </div>
                 </header>
 
-                <main className="p-4 md:p-6 max-w-2xl space-y-4 pb-24 md:pb-6">
+                <main className="p-4 md:p-6 max-w-4xl space-y-4 pb-24 md:pb-6">
+
+                    {/* Spreadsheet view */}
+                    {viewMode === 'spreadsheet' && (
+                        <WorkoutSpreadsheetView />
+                    )}
+
+                    {viewMode === 'card' && (
+                    <>
                     {/* Today's Workout highlight */}
                     <div className={`${glassCard} p-5`}>
                         <div className="flex items-center gap-2 mb-3">
@@ -461,6 +498,8 @@ export function WorkoutView() {
                                 </div>
                             );
                         })
+                    )}
+                    </> /* end card view */
                     )}
                 </main>
             </div>

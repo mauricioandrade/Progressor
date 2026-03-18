@@ -1,12 +1,10 @@
 <h1 align="center">
-  <img src="frontend/src/assets/logoEscuro.png" alt="Progressor Logo" width="200"/>
   <br/>
   Progressor
 </h1>
 
 <p align="center">
-  <strong>Your Fitness Journey, Secured.</strong><br/>
-  <em>Sua Jornada Fitness, com Segurança.</em>
+  <strong>Your Fitness Journey, Secured.</strong>
 </p>
 
 <p align="center">
@@ -14,75 +12,79 @@
   <img alt="Spring Boot" src="https://img.shields.io/badge/Spring_Boot-4.0.3-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white"/>
   <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black"/>
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white"/>
-  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white"/>
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white"/>
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white"/>
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white"/>
 </p>
 
 <p align="center">
-  <img alt="License" src="https://img.shields.io/badge/License-MIT-green?style=flat-square"/>
-  <img alt="Status" src="https://img.shields.io/badge/Status-Active_Development-blueviolet?style=flat-square"/>
-  <img alt="Architecture" src="https://img.shields.io/badge/Architecture-Clean_Architecture-orange?style=flat-square"/>
-  <img alt="Security" src="https://img.shields.io/badge/Encryption-AES--256--GCM-red?style=flat-square"/>
-  <img alt="LGPD" src="https://img.shields.io/badge/Compliance-LGPD%20%7C%20GDPR-blue?style=flat-square"/>
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-22c55e?style=flat-square"/>
+  <img alt="Status" src="https://img.shields.io/badge/Status-Active_Development-8b5cf6?style=flat-square"/>
+  <img alt="Architecture" src="https://img.shields.io/badge/Architecture-Clean_Architecture-f97316?style=flat-square"/>
+  <img alt="Security" src="https://img.shields.io/badge/Encryption-AES--256--GCM-ef4444?style=flat-square"/>
+  <img alt="Tests" src="https://img.shields.io/badge/Tests-32%2B_Automated-16a34a?style=flat-square"/>
+  <img alt="LGPD" src="https://img.shields.io/badge/Compliance-LGPD%20%7C%20GDPR-3b82f6?style=flat-square"/>
+</p>
+
+<p align="center">
+  <a href="README.md"><img alt="English" src="https://img.shields.io/badge/🇺🇸-English-blue?style=for-the-badge"/></a>
+  &nbsp;
+  <a href="README-pt.md"><img alt="Português" src="https://img.shields.io/badge/🇧🇷-Português-green?style=for-the-badge"/></a>
 </p>
 
 ---
 
-## 🇧🇷 Português | 🇺🇸 English
-
-> **PT:** Progressor é uma plataforma completa de gestão fitness que conecta alunos, personal trainers e nutricionistas. Com criptografia de ponta a ponta nos dados sensíveis, relatórios PDF profissionais e busca de alimentos em tempo real, o projeto foi construído com Clean Architecture e os mais modernos padrões da indústria.
-
-> **EN:** Progressor is a full-stack fitness management platform connecting students, personal trainers, and nutritionists. With end-to-end encryption of sensitive data, professional PDF reports, and real-time food search, the project is built on Clean Architecture and modern industry standards.
+> Progressor is a full-stack fitness management platform connecting students, personal trainers, and nutritionists. Built on **Clean Architecture** with end-to-end encryption of sensitive data, professional PDF reports, real-time food search powered by **Open Food Facts**, and a consent-based professional opt-in flow.
 
 ---
 
-## 📋 Table of Contents / Índice
+## 📋 Table of Contents
 
-- [✨ Key Features](#-key-features--funcionalidades-principais)
-- [🏗️ Architecture](#️-architecture--arquitetura)
-- [🔐 Security](#-security--segurança)
-- [🥗 Nutrition Module](#-nutrition-module--módulo-de-nutrição)
-- [📄 PDF Reports](#-pdf-reports--relatórios-pdf)
-- [🖥️ Tech Stack](#️-tech-stack--stack-tecnológica)
-- [⚙️ How to Run](#️-how-to-run--como-executar)
+- [✨ Key Features](#-key-features)
+- [🏗️ Architecture](#️-architecture)
+- [🔐 Security](#-security)
+- [🩺 V1.1 — Consent Flow & Workout Matrix](#-v11--consent-flow--workout-matrix)
+- [🥗 Nutrition Module](#-nutrition-module)
+- [📄 PDF Reports](#-pdf-reports)
+- [🧪 Testing](#-testing)
+- [🖥️ Tech Stack](#️-tech-stack)
+- [⚙️ How to Run](#️-how-to-run)
 - [🗺️ Roadmap](#️-roadmap)
-- [📸 Screenshots](#-screenshots)
 
 ---
 
-## ✨ Key Features / Funcionalidades Principais
+## ✨ Key Features
 
-### 👤 Multi-Role User System
-| Role / Papel | Capabilities / Capacidades |
+### 👥 Multi-Role User System
+
+| Role | Capabilities |
 |---|---|
-| 🎓 **Student / Aluno** | View workout & diet, log check-ins, upload progress photos, track water intake, self-assessments |
-| 💪 **Personal Trainer** | Manage students, create workout plans, view student dashboards, leave photo feedback, generate PDF reports |
-| 🥗 **Nutritionist / Nutricionista** | Manage patients, build meal plans with USDA food search, generate diet PDF reports |
+| 🎓 **Student** | View workouts & diet, log check-ins, upload progress photos, track water, run self-assessments |
+| 💪 **Personal Trainer** | Manage students via consent flow, create workout plans with block hierarchy, leave feedback, generate PDF reports |
+| 🥗 **Nutritionist** | Manage patients via consent flow, build meal plans with real Brazilian food data via Open Food Facts, generate diet PDF reports |
 
 ### 🏋️ Workout Management
-- Create structured workout plans with sets, reps, weight, and rest time
-- Daily check-in system with gym frequency tracking (ContributionGraph)
+- Structured workout plans with **WorkoutPlan → WorkoutBlock → WorkoutExercise** hierarchy
+- **Spreadsheet Matrix View** — see the last 4 training sessions side-by-side per exercise, grouped by block
+- Daily check-in system with gym frequency graph (`ContributionGraph`)
 - Exercise history & personal records tracking
-- 📄 Exportable PDF workout sheet via JasperReports
-- Rest timer with floating pill UI (`RestTimerPill`)
+- Rest timer with floating pill UI
+- Exportable PDF workout sheet via JasperReports
 
 ### 📊 Progress Tracking
 - Body measurements timeline (weight, body fat %, 8 circumference points)
-- **Visual Before & After Slider** (`BeforeAfterSlider`) — drag to compare photos over time
+- **Visual Before & After Slider** — drag to compare progress photos over time
 - Progress photo upload with student notes and professional feedback bubbles
-- Role-aware feedback badges (🏋️ Personal / 🥗 Nutri)
+- Role-aware feedback badges (🏋️ Personal Trainer / 🥗 Nutritionist)
 - Edit and delete own feedback (author-only, enforced server-side)
-- 📄 Exportable PDF progress report with measurement history
+- Exportable PDF progress report
 
 ### 🥗 Nutrition Module
-- Real-time food search powered by the **USDA FoodData Central API**
-- **Portuguese ↔ English translation layer** — search in PT-BR, display results in Portuguese
-  (`"frango"` → queries `"Chicken"` → displays `"Frango, Peito, grelhado"`)
-- Macro-nutrient breakdown per meal (kcal, protein, carbs, fat)
+- Real-time food search via the **Open Food Facts API** — a free, community-driven global database with no commercial paywall
+- **Native Brazilian food data in PT-BR** — real supermarket brands and local products (e.g., "Frango Assado Bob's", "Pão de Queijo Forno de Minas") with names already in Portuguese
+- Macro-nutrient breakdown per 100g and per meal (kcal, protein, carbs, fat)
 - Meal plans grouped by BREAKFAST / LUNCH / DINNER / SNACK
 - Daily water intake tracker with custom goals
 - Cheat meal flag 🍔
-- 📄 Exportable PDF meal plan report
 
 ### 🔑 Auth & Identity
 - JWT authentication with `email`, `role`, and `userId` claims
@@ -92,167 +94,245 @@
 
 ---
 
-## 🏗️ Architecture / Arquitetura
+## 🏗️ Architecture
 
 Progressor follows **Clean Architecture** with a strict dependency rule: outer layers depend on inner layers, never the reverse.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Infrastructure                    │
-│  Controllers │ JPA Adapters │ JasperReports │ USDA  │
-├─────────────────────────────────────────────────────┤
-│                  Application Layer                  │
-│        Use Cases │ DTOs │ Port Interfaces           │
-├─────────────────────────────────────────────────────┤
-│                   Domain Layer                      │
-│   Entities (Student, Workout, MealPlan, Photo…)     │
-└─────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│                         Infrastructure                         │
+│  Controllers │ JPA Adapters │ Flyway │ JasperReports │ OFF   │
+├────────────────────────────────────────────────────────────────┤
+│                       Application Layer                        │
+│            Use Cases │ DTOs │ Port Interfaces                  │
+├────────────────────────────────────────────────────────────────┤
+│                         Domain Layer                           │
+│   Entities (User, Student, WorkoutPlan, MealPlan, Photo…)      │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 **Key structural decisions:**
+
 - **JPA JOINED inheritance** for `UserEntity` → `StudentEntity` / `PersonalTrainerEntity` / `NutritionistEntity`
-- All Use Cases are plain Java objects — no Spring annotations — instantiated as `@Bean` in `UseCaseConfig`
-- Repository interfaces live in the `application.ports` package (dependency inversion); JPA adapters implement them from the outside
+- All Use Cases are **plain Java objects** — no Spring annotations — instantiated as `@Bean` in `UseCaseConfig`. This keeps domain logic framework-agnostic and trivially testable with Mockito.
+- Repository interfaces live in `application.ports` (dependency inversion); JPA adapters implement them from the outside.
+- **Flyway** manages all schema changes from V1.1 onwards (`V2__add_invites_and_workout_blocks.sql`), enabling reproducible, version-controlled migrations.
 
 ---
 
-## 🔐 Security / Segurança
+## 🔐 Security
 
 ### AES-256-GCM Column Encryption
 
-Sensitive data is encrypted **at the persistence layer** using JPA `AttributeConverter`s before it ever reaches the database.
+Sensitive data is encrypted **at the persistence layer** using JPA `AttributeConverter`s before it ever reaches the database. No plaintext health data is ever written to disk.
 
 ```
-Application ──► AttributeConverter ──► AES-256-GCM ──► PostgreSQL bytea / TEXT column
-                                          ▲
-                              ENCRYPTION_KEY env variable (32 bytes / 64 hex chars)
+Application ──► AttributeConverter ──► AES-256-GCM ──► PostgreSQL bytea / TEXT
+                                            ▲
+                                ENCRYPTION_KEY env var (32 bytes / 64 hex chars)
 ```
 
-| Field / Campo | Converter Used | Reason |
+| Field | Converter | Reason |
 |---|---|---|
 | `progress_photos.photo_data` | `EncryptedByteArrayConverter` | Raw image bytes — most sensitive |
 | `progress_photos.professional_feedback` | `EncryptedStringConverter` | Private coach communication |
 | `progress_photos.student_notes` | `EncryptedStringConverter` | Patient-sensitive goals |
 | `body_measurements.*` (sensitive columns) | `EncryptedStringConverter` | Health data (LGPD Art. 11) |
-| `app_users.email` | ❌ **Not encrypted** | Must remain searchable for login (`findByEmail`) |
+| `app_users.email` | ❌ Not encrypted | Must remain searchable for login |
 | `app_users.password` | BCrypt (Spring Security) | Standard password hashing |
 
-> ⚠️ **Why email is NOT encrypted:** Encrypting with a random nonce (AES-GCM) produces a different ciphertext on every call. This makes `WHERE email = ?` impossible. The email is not considered sensitive health data under LGPD Article 11, so this is both secure and correct.
+> **Why email is not encrypted:** AES-GCM uses a random nonce per encryption, producing a different ciphertext every call. This makes `WHERE email = ?` impossible. Email is not health data under LGPD Article 11, so this is both correct and intentional.
 
-### LGPD / GDPR Compliance Notes
-- Health-related data (photos, measurements, feedback) is encrypted at rest ✅
-- Data is accessed only by the data subject (student) or their designated professional ✅
-- Users can delete their own photos (`DELETE /api/progress-photos/{id}`) ✅
-- Passwords are never stored in plaintext ✅
+### LGPD / GDPR Compliance
+- Health-related data (photos, measurements, feedback) encrypted at rest ✅
+- Data accessible only by the subject or their explicitly designated professional ✅
+- Users can delete their own photos and feedback ✅
+- Passwords never stored in plaintext ✅
 
 ---
 
-## 🥗 Nutrition Module / Módulo de Nutrição
+## 🩺 V1.1 — Consent Flow & Workout Matrix
 
-### USDA FoodData Central Integration
+Version 1.1 introduced two major architectural upgrades based on real-world personal trainer feedback.
+
+### Professional Opt-In Consent Flow
+
+Before V1.1, a trainer could directly assign themselves as a student's professional — no consent required. This was replaced with a proper **ConnectionRequest** flow:
+
+```
+Personal Trainer          Backend                      Student
+     │                      │                             │
+     │  POST /connections/invite                          │
+     │─────────────────────►│                             │
+     │                      │── saves PENDING request ───►│
+     │                      │                             │
+     │                      │◄── POST /connections/respond (accepted: true)
+     │                      │                             │
+     │                      │── ACCEPTED → assigns PT ───►│
+```
+
+- `ConnectionRequest` entity with `PENDING → ACCEPTED / REJECTED` state machine
+- Students see pending invitations on their dashboard and accept or reject with a single tap
+- Duplicate invite guard: a professional cannot send a second invite to the same student while one is still pending
+- Supports both `COACH` and `NUTRI` roles through the same flow
+
+### Workout Spreadsheet Matrix
+
+A new toggle on the Workout view switches from the card-based layout to a compact **spreadsheet grid**:
+
+- Rows = exercises, grouped under their **WorkoutBlock** (e.g., "Block A – Upper Body")
+- Columns = **Semana 1 / 2 / 3 / 4** — the last 4 historical log entries per exercise
+- Each cell shows the logged weight/reps and the date — the most recent session highlighted in emerald
+- Fully responsive with a sticky exercise name column
+
+### Database Migrations (Flyway)
+
+V1.1 introduced Flyway to manage schema evolution safely:
+
+```sql
+-- V2__add_invites_and_workout_blocks.sql (excerpt)
+CREATE TABLE connection_requests (
+  id UUID PRIMARY KEY,
+  professional_id UUID NOT NULL,
+  student_id UUID NOT NULL REFERENCES students(user_id),
+  professional_role VARCHAR(10) NOT NULL CHECK (professional_role IN ('COACH', 'NUTRI')),
+  status VARCHAR(10) NOT NULL DEFAULT 'PENDING',
+  CONSTRAINT uq_connection_request UNIQUE (professional_id, student_id, professional_role)
+);
+
+CREATE TABLE workout_plans ( … );
+CREATE TABLE workout_blocks ( … );
+ALTER TABLE workout_exercises ADD COLUMN block_id UUID REFERENCES workout_blocks(id) ON DELETE SET NULL;
+```
+
+---
+
+## 🥗 Nutrition Module
+
+### Open Food Facts Integration
 
 ```
 User types "frango"
      │
      ▼
-BrazilianFoodTranslation.toEnglishQuery()   →  "Chicken"
+GET world.openfoodfacts.org/cgi/search.pl?search_terms=frango&lc=pt&cc=br
      │
      ▼
-GET api.nal.usda.gov/fdc/v1/foods/search
-  ?api_key=...&query=Chicken&dataType=Foundation&dataType=SR+Legacy
+Open Food Facts: "Frango Grelhado  |  nutriscore: B  |  per 100g"
      │
      ▼
-USDA returns: "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+OpenFoodFactsClient maps nutriments → FoodItemResponse
      │
      ▼
-BrazilianFoodTranslation.toPortugueseName()  →  "Frango, Peito, grelhado"
-     │
-     ▼
-Frontend displays: "Frango, Peito, grelhado  |  165kcal · P31g · C0g · G4g"
+Frontend: "Frango Grelhado  |  165kcal · P31g · C0g · G4g  (por 100g)"
 ```
 
-**Macro Nutrient IDs mapped from USDA:**
-| Nutrient | USDA ID |
-|---|---|
-| Protein | `1003` |
-| Fat | `1004` |
-| Carbohydrates | `1005` |
-| Energy (kcal) | `1008` |
+**Why Open Food Facts:**
+- **No API key or OAuth required** — stateless HTTP, zero vendor lock-in
+- **Native PT-BR results** — the `lc=pt&cc=br` locale parameters return real Brazilian supermarket products with Portuguese names out of the box
+- **Community-driven breadth** — branded products, regional items, and packaged goods that government databases simply don't have
+- **Macros per 100g** — consistent, comparable nutritional baseline
 
-**HTTP Client resilience (`UsdaClient`):**
-- JDK `java.net.http.HttpClient` — no extra dependencies
-- 30-second connect + request timeout (avoids I/O hangs)
-- `User-Agent: ProgressorApp/1.0` header (required by some government APIs)
-- Automatic redirect following (`NORMAL` policy)
-- Masked key in logs: `tMOF****WKMO`
-- Explicit HTTP 403 branch with diagnostic message
+**HTTP Client resilience (`OpenFoodFactsClient`):**
+- JDK `java.net.http.HttpClient` — no external dependencies
+- 30-second connect + request timeout
+- `User-Agent: ProgressorApp/1.0` header
+- Automatic redirect following
+- Graceful empty-result handling
 
 ---
 
-## 📄 PDF Reports / Relatórios PDF
+## 📄 PDF Reports
 
-Powered by **JasperReports 6.21.3**, three report types are available:
+Powered by **JasperReports 6.21.3**:
 
 | Report | Endpoint | Description |
 |---|---|---|
-| 🏋️ Workout Sheet | `GET /api/reports/workout-sheet/{studentId}` | Full exercise plan with sets/reps/weight |
-| 📊 Progress Report | `GET /api/reports/progress/{studentId}` | Measurement history + evolution charts |
+| 🏋️ Workout Sheet | `GET /api/reports/workout-sheet/{studentId}` | Full exercise plan with sets / reps / weight |
+| 📊 Progress Report | `GET /api/reports/progress/{studentId}` | Measurement history + evolution |
 | 🥗 Meal Plan | `GET /api/reports/meal-plan/{studentId}` | Grouped meals with macro breakdown |
-
-Reports are compiled from `.jrxml` templates at startup and streamed as `application/pdf` responses.
-
-> **Important:** JRXML element order must follow the JasperReports schema strictly:
-> `columnFooter → pageFooter → lastPageFooter → summary → noData`
-> Violating this order causes a `SAXParseException` at compile time.
 
 ---
 
-## 🖥️ Tech Stack / Stack Tecnológica
+## 🧪 Testing
+
+Progressor ships with **32+ automated tests** across both backend and frontend layers.
+
+### Backend — JUnit 5 + Mockito
+
+| Test Class | Scenarios |
+|---|---|
+| `SendConnectionRequestUseCaseTest` | Happy path saves PENDING, duplicate invite guard, professional not found, student not found |
+| `RespondToConnectionRequestUseCaseTest` | COACH accept assigns trainer, NUTRI accept assigns nutritionist, reject updates status only, wrong student throws, already-accepted guard |
+| `WorkoutHierarchyUseCaseTest` | Plan creation + validation, block creation linked to plan, domain invariants (negative position, blank name) |
+| `ProgressorApplicationTests` | Spring context loads cleanly |
+
+Run them:
+```bash
+cd backend
+JAVA_HOME=/path/to/java25 ./mvnw test
+```
+
+### Frontend — Vitest + React Testing Library
+
+| Test File | Scenarios |
+|---|---|
+| `WorkoutSpreadsheetView.test.tsx` | Empty state, plan+block headers, sets×reps+weight display, history logs in columns, null-safety on missing blocks/exercises, URL routing by studentId |
+| `InviteNotification.test.tsx` | Empty list renders nothing, invite list displays, Accept → `POST` with `accepted: true`, Reject → `POST` with `accepted: false`, invite removed after response, error toast on failure |
+
+Run them:
+```bash
+cd frontend
+npm test
+```
+
+---
+
+## 🖥️ Tech Stack
 
 ### Backend
 | Technology | Version | Purpose |
 |---|---|---|
-| Java | **25** | Core language (uses switch expressions, records, sealed classes) |
+| Java | **25** | Core language (records, switch expressions, pattern matching) |
 | Spring Boot | **4.0.3** | Application framework |
 | Spring Security | 4.0.x | JWT stateless auth, role-based authorization |
-| Spring Data JPA | 4.0.x | ORM + repository layer |
-| Hibernate | 7.x | JPA provider, JOINED inheritance strategy |
-| PostgreSQL | 16 | Primary database |
-| JasperReports | 6.21.3 | PDF report generation from JRXML templates |
-| Auth0 Java JWT | 4.4.0 | JWT creation and validation |
-| Jackson | 2.x | JSON parsing (USDA API responses) |
+| Spring Data JPA / Hibernate | 4.0.x / 7.x | ORM, JOINED inheritance strategy |
+| PostgreSQL | 16+ | Primary database |
+| Flyway | 10.x | Version-controlled schema migrations |
+| JasperReports | 6.21.3 | PDF generation from JRXML templates |
+| JUnit 5 + Mockito | — | Backend unit testing |
 
 ### Frontend
 | Technology | Version | Purpose |
 |---|---|---|
 | React | 19 | UI framework |
 | TypeScript | 5 | Type safety |
-| Vite | 6 | Build tool |
-| Tailwind CSS | 3 | Utility-first styling with dark mode |
-| react-router-dom | 6 | Client-side routing, protected routes |
-| react-i18next | — | Bilingual UI (PT-BR + EN) |
-| react-hot-toast | — | Non-intrusive toast notifications |
+| Vite | 8 | Build tool |
+| Tailwind CSS | 4 | Utility-first styling with dark mode |
+| react-router-dom | 7 | Client-side routing, protected routes |
+| react-i18next | — | Bilingual UI (PT-BR / EN) |
+| Vitest + React Testing Library | — | Component and unit testing |
 | Axios | — | HTTP client |
 | lucide-react | — | Icon library |
-| jwt-decode | — | Client-side JWT claim extraction |
+| Recharts | — | Macro ring chart, contribution graph |
 
 ### Infrastructure
 | Technology | Purpose |
 |---|---|
 | Docker / Docker Compose | One-command local environment |
-| Maven | Backend build & dependency management |
+| Maven 3.9+ | Backend build & dependency management |
 
 ---
 
-## ⚙️ How to Run / Como Executar
+## ⚙️ How to Run
 
-### Prerequisites / Pré-requisitos
+### Prerequisites
 - Docker & Docker Compose
 - Node.js 20+
-- Java 25 (for local backend development)
+- Java 25
 - Maven 3.9+
 
-### 1. Clone the repository
+### 1. Clone
 
 ```bash
 git clone https://github.com/your-username/progressor.git
@@ -265,7 +345,7 @@ cd progressor
 cp .env.example .env
 ```
 
-Edit `.env` with your values:
+Edit `.env`:
 
 ```env
 # Database
@@ -273,19 +353,16 @@ SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/progressorv1
 SPRING_DATASOURCE_USERNAME=progressorv1
 SPRING_DATASOURCE_PASSWORD=progressorv1
 
-# USDA FoodData Central API
-# Get your free key at: https://fdc.nal.usda.gov/api-guide.html
-USDA_API_KEY=your_usda_api_key_here
+# Open Food Facts requires no API key — it is a free, open database
 
-# AES-256 Encryption key — generate with: openssl rand -hex 32
-# WARNING: changing this key after data exists will corrupt all encrypted rows
+# AES-256 encryption key — generate with: openssl rand -hex 32
+# WARNING: changing this after data exists will corrupt all encrypted rows
 ENCRYPTION_KEY=replace_with_64_hex_chars
 ```
 
-### 3a. Run with Docker Compose (recommended)
+### 3a. Docker Compose (recommended)
 
 ```bash
-# Start PostgreSQL + Backend + Frontend
 docker-compose up --build
 ```
 
@@ -293,82 +370,56 @@ docker-compose up --build
 |---|---|
 | Frontend | http://localhost:5173 |
 | Backend API | http://localhost:8081/api |
-| API Docs (Swagger) | http://localhost:8081/swagger-ui.html |
 
-### 3b. Run manually (development)
+### 3b. Manual (development)
 
-**Backend:**
 ```bash
-cd backend
-./mvnw spring-boot:run
+# Backend
+cd backend && ./mvnw spring-boot:run
+
+# Frontend (separate terminal)
+cd frontend && npm install && npm run dev
 ```
 
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
+### 4. Register
 
-### 4. Create your first account
-
-Navigate to `http://localhost:5173/signup` and register as:
-- **Personal Trainer** (requires CREF number)
-- **Nutritionist** (requires CRN number)
-- **Student**
+Navigate to `http://localhost:5173/signup` and create an account as **Student**, **Personal Trainer** (requires CREF), or **Nutritionist** (requires CRN).
 
 ---
 
 ## 🗺️ Roadmap
 
-### ✅ Completed
-- [x] Multi-role authentication (Student / Personal Trainer / Nutritionist)
+### ✅ V1.0 — Completed
+- [x] Multi-role auth (Student / Personal Trainer / Nutritionist)
 - [x] Workout plan creation and PDF export
-- [x] Nutrition module with USDA food search
-- [x] PT→EN query translation + EN→PT result back-translation (85 food entries)
+- [x] Nutrition module with Open Food Facts food search (native PT-BR results)
 - [x] Progress photo upload with AES-256-GCM encryption
 - [x] Before & After visual slider
-- [x] Professional feedback bubbles (with edit/delete, author-only enforcement)
+- [x] Professional feedback bubbles (author-only edit/delete)
 - [x] Body measurements tracking + PDF progress report
-- [x] Water intake tracker with daily goals
-- [x] Gym check-in frequency graph
-- [x] Forgot password / Reset password flow
+- [x] Water intake tracker, gym check-in frequency graph
+- [x] Forgot / reset password flow
 - [x] Dark mode + bilingual UI (PT-BR / EN)
+
+### ✅ V1.1 — Completed
+- [x] Professional opt-in consent flow (`ConnectionRequest` PENDING → ACCEPTED / REJECTED)
+- [x] `WorkoutPlan → WorkoutBlock → WorkoutExercise` hierarchy
+- [x] Workout Spreadsheet Matrix View (last 4 sessions per exercise)
+- [x] Flyway database migrations (`V2__add_invites_and_workout_blocks.sql`)
+- [x] 32+ automated tests (JUnit 5 backend + Vitest frontend)
 
 ### 🔄 In Progress
 - [ ] Push notifications for student inactivity alerts (> 3 days without check-in)
-- [ ] Student goals & notes module
+- [ ] Student goals & personal notes module
 
 ### 🔮 Planned
-- [ ] **FatSecret API migration** — replace USDA with FatSecret for localized Brazilian brand data (including "Frango Assado do Bob's", "Pão de Queijo Forno de Minas", etc.) and native Portuguese food names
 - [ ] Mobile app (React Native)
-- [ ] AI-powered workout suggestion based on student history
-- [ ] Integration with wearables (Garmin, Apple Health, Google Fit)
-- [ ] Multi-language report templates (PT-BR / EN)
-
----
-
-## 📸 Screenshots
-
-> _Screenshots will be added as the UI stabilizes._
-
-| Dashboard (Dark) | Workout Builder | Diet Planner |
-|---|---|---|
-| _coming soon_ | _coming soon_ | _coming soon_ |
-
-| Progress Photos | PDF Report | Student Detail |
-|---|---|---|
-| _coming soon_ | _coming soon_ | _coming soon_ |
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+- [ ] AI-powered workout suggestions based on student history
+- [ ] Wearable integrations (Garmin, Apple Health, Google Fit)
 
 ---
 
 <p align="center">
   Built with ❤️ by <strong>Mauricio Andrade</strong><br/>
-  <sub>Portfolio project — demonstrating Clean Architecture, Spring Boot 4, AES-256 encryption, and modern React patterns</sub>
+  <sub>Portfolio project — Clean Architecture · Spring Boot 4 · AES-256 Encryption · React 19 · 32+ Automated Tests</sub>
 </p>

@@ -55,6 +55,9 @@ public class CreateWorkoutUseCase {
       if (exerciseDto.workoutLabel() != null || joined != null) {
         exercise.applySchedule(exerciseDto.workoutLabel(), joined);
       }
+      if (exerciseDto.blockId() != null) {
+        exercise.assignToBlock(exerciseDto.blockId());
+      }
 
       workoutExercises.add(exercise);
     }

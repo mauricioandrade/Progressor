@@ -35,4 +35,10 @@ public class WorkoutRepositoryAdapter implements WorkoutRepository {
     return springDataRepository.findByStudentIdAndScheduledDayContaining(studentId, day).stream()
         .map(WorkoutExerciseMapper::toDomain).toList();
   }
+
+  @Override
+  public List<WorkoutExercise> findByBlockId(UUID blockId) {
+    return springDataRepository.findByBlockId(blockId).stream()
+        .map(WorkoutExerciseMapper::toDomain).toList();
+  }
 }

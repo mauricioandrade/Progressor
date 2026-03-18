@@ -11,4 +11,6 @@ public interface WorkoutRepository {
   List<WorkoutExercise> findByStudentId(UUID studentId);
 
   List<WorkoutExercise> findByStudentIdAndScheduledDay(UUID studentId, String day);
+
+  List<WorkoutExercise> findByBlockId(UUID blockId);
 }

@@ -23,6 +23,7 @@ public class WorkoutExerciseMapper {
     entity.setRestTime(domain.getRestTime());
     entity.setWorkoutLabel(domain.getWorkoutLabel());
     entity.setScheduledDays(domain.getScheduledDays());
+    entity.setBlockId(domain.getBlockId());
     return entity;
   }
 
@@ -51,6 +52,9 @@ public class WorkoutExerciseMapper {
     }
     if (entity.getWorkoutLabel() != null || entity.getScheduledDays() != null) {
       exercise.applySchedule(entity.getWorkoutLabel(), entity.getScheduledDays());
+    }
+    if (entity.getBlockId() != null) {
+      exercise.assignToBlock(entity.getBlockId());
     }
     return exercise;
   }

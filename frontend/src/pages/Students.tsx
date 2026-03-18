@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, UserPlus, Search } from 'lucide-react';
+import { AlertCircle, Search, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { useAuth } from '../hooks/useAuth';
@@ -70,15 +70,15 @@ export function Students() {
         }
     }
 
-    async function handleAssign(studentId: string) {
+    async function handleSendInvite(studentEmail: string) {
         try {
-            await api.post(`/users/${studentId}/assign-trainer`);
-            setAssignSuccess(t('students_list.assign_success'));
+            await api.post(`/connections/invite?studentEmail=${encodeURIComponent(studentEmail)}&role=COACH`);
+            setAssignSuccess('Convite enviado! O aluno precisa aceitar no seu app.');
             setSearchResult(null);
             setSearchEmail('');
-            loadStudents();
-        } catch {
-            setSearchError(t('login.errors.server_error'));
+        } catch (error: any) {
+            const msg = error.response?.data?.message;
+            setSearchError(msg ?? t('login.errors.server_error'));
         }
     }
 
@@ -137,11 +137,11 @@ export function Students() {
                                     <p className="text-xs text-gray-500 dark:text-gray-400">{searchResult.email}</p>
                                 </div>
                                 <button
-                                    onClick={() => handleAssign(searchResult.id)}
+                                    onClick={() => handleSendInvite(searchResult.email)}
                                     className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors active:scale-95"
                                 >
-                                    <UserPlus className="w-3.5 h-3.5" />
-                                    {t('students_list.assign_button')}
+                                    <Send className="w-3.5 h-3.5" />
+                                    Enviar Convite
                                 </button>
                             </div>
                         )}

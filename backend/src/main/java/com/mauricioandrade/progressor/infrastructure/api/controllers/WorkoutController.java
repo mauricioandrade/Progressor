@@ -1,8 +1,15 @@
 package com.mauricioandrade.progressor.infrastructure.api.controllers;
 
+import com.mauricioandrade.progressor.core.application.dto.CreateWorkoutBlockRequest;
+import com.mauricioandrade.progressor.core.application.dto.CreateWorkoutPlanRequest;
 import com.mauricioandrade.progressor.core.application.dto.CreateWorkoutRequest;
+import com.mauricioandrade.progressor.core.application.dto.WorkoutBlockResponse;
 import com.mauricioandrade.progressor.core.application.dto.WorkoutExerciseResponse;
+import com.mauricioandrade.progressor.core.application.dto.WorkoutPlanResponse;
+import com.mauricioandrade.progressor.core.application.usecases.CreateWorkoutBlockUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.CreateWorkoutPlanUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.CreateWorkoutUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetStudentWorkoutPlansUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetStudentWorkoutUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetTodayWorkoutUseCase;
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
@@ -27,13 +34,22 @@ public class WorkoutController {
   private final CreateWorkoutUseCase createWorkoutUseCase;
   private final GetStudentWorkoutUseCase getStudentWorkoutUseCase;
   private final GetTodayWorkoutUseCase getTodayWorkoutUseCase;
+  private final CreateWorkoutPlanUseCase createWorkoutPlanUseCase;
+  private final GetStudentWorkoutPlansUseCase getStudentWorkoutPlansUseCase;
+  private final CreateWorkoutBlockUseCase createWorkoutBlockUseCase;
 
   public WorkoutController(CreateWorkoutUseCase createWorkoutUseCase,
       GetStudentWorkoutUseCase getStudentWorkoutUseCase,
-      GetTodayWorkoutUseCase getTodayWorkoutUseCase) {
+      GetTodayWorkoutUseCase getTodayWorkoutUseCase,
+      CreateWorkoutPlanUseCase createWorkoutPlanUseCase,
+      GetStudentWorkoutPlansUseCase getStudentWorkoutPlansUseCase,
+      CreateWorkoutBlockUseCase createWorkoutBlockUseCase) {
     this.createWorkoutUseCase = createWorkoutUseCase;
     this.getStudentWorkoutUseCase = getStudentWorkoutUseCase;
     this.getTodayWorkoutUseCase = getTodayWorkoutUseCase;
+    this.createWorkoutPlanUseCase = createWorkoutPlanUseCase;
+    this.getStudentWorkoutPlansUseCase = getStudentWorkoutPlansUseCase;
+    this.createWorkoutBlockUseCase = createWorkoutBlockUseCase;
   }
 
   @PostMapping
@@ -59,5 +75,36 @@ public class WorkoutController {
       @AuthenticationPrincipal UserEntity currentUser) {
     String day = LocalDate.now().getDayOfWeek().name().substring(0, 3);
     return ResponseEntity.ok(getTodayWorkoutUseCase.execute(currentUser.getId(), day));
+  }
+
+  // ---- Workout Plan endpoints ----
+
+  @PostMapping("/plans")
+  public ResponseEntity<WorkoutPlanResponse> createPlan(
+      @Valid @RequestBody CreateWorkoutPlanRequest request,
+      @AuthenticationPrincipal UserEntity currentUser) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(createWorkoutPlanUseCase.execute(request, currentUser.getId()));
+  }
+
+  @GetMapping("/plans/student/{studentId}")
+  public ResponseEntity<List<WorkoutPlanResponse>> getPlansForStudent(
+      @PathVariable UUID studentId) {
+    return ResponseEntity.ok(getStudentWorkoutPlansUseCase.execute(studentId));
+  }
+
+  @GetMapping("/plans/my")
+  public ResponseEntity<List<WorkoutPlanResponse>> getMyPlans(
+      @AuthenticationPrincipal UserEntity currentUser) {
+    return ResponseEntity.ok(getStudentWorkoutPlansUseCase.execute(currentUser.getId()));
+  }
+
+  // ---- Workout Block endpoints ----
+
+  @PostMapping("/blocks")
+  public ResponseEntity<WorkoutBlockResponse> createBlock(
+      @Valid @RequestBody CreateWorkoutBlockRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(createWorkoutBlockUseCase.execute(request));
   }
 }

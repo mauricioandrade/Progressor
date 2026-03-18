@@ -26,6 +26,7 @@ public class WorkoutExerciseEntity {
   private Integer restTime;
   private String workoutLabel;
   private String scheduledDays;
+  private UUID blockId;
 
   public WorkoutExerciseEntity() {
   }
@@ -148,5 +149,13 @@ public class WorkoutExerciseEntity {
 
   public void setScheduledDays(String scheduledDays) {
     this.scheduledDays = scheduledDays;
+  }
+
+  public UUID getBlockId() {
+    return blockId;
+  }
+
+  public void setBlockId(UUID blockId) {
+    this.blockId = blockId;
   }
 }

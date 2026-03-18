@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(cd:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npm run:*)",
+      "Bash(ls:*)",
+      "Bash(./mvnw clean:*)",
+      "Read(//c/Program Files/**)",
+      "Bash(export JAVA_HOME=\"/c/Users/mauri/.jdks/openjdk-25.0.2\")",
+      "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
+      "Bash(npm install:*)",
+      "Bash(npx vitest:*)",
+      "Bash(./mvnw test:*)",
+      "Bash(JAVA_HOME=\"/c/Users/mauri/.jdks/openjdk-25.0.2\" ./mvnw test --no-transfer-progress)",
+      "Bash(JAVA_HOME=\"/c/Users/mauri/.jdks/openjdk-25.0.2\" ./mvnw compile --no-transfer-progress)"
+    ]
+  }
+}

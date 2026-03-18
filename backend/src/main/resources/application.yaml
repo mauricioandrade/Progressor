@@ -5,6 +5,11 @@ spring:
   application:
     name: progressor
 
+  config:
+    # Loads backend/.env (KEY=VALUE format) as a properties file.
+    # "optional:" means the app still starts if the file is absent (e.g. in CI/Docker).
+    import: optional:file:.env[.properties]
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/progressorv1}
     username: ${SPRING_DATASOURCE_USERNAME:progressorv1}
@@ -21,10 +26,10 @@ spring:
         format_sql: true
 
   flyway:
-    enabled: false
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
 
-usda:
-  api-key: ${USDA_API_KEY:tMOFHg7XiFDhMkALfw7nxQypRsOpWuTfg0OrcWKM}
 
 encryption:
   key: ${ENCRYPTION_KEY:0000000000000000000000000000000000000000000000000000000000000000}

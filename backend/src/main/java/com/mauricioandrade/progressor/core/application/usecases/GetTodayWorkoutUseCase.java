@@ -18,7 +18,7 @@ public class GetTodayWorkoutUseCase {
         .map(e -> new WorkoutExerciseResponse(e.getId(), e.getName(), e.getSets(),
             e.getRepetitions(), e.getMeasurementType().name(), e.getWeightInKg(), e.getSpeed(),
             e.getTimeInSeconds(), e.getCadence(), e.getTonnage(), e.getVideoUrl(), e.getRestTime(),
-            e.getWorkoutLabel(), e.getScheduledDays()))
+            e.getWorkoutLabel(), e.getScheduledDays(), e.getBlockId()))
         .toList();
   }
 }
