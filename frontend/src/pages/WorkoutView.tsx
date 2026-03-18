@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, X, CheckCircle, Timer, Download, Loader2, LayoutGrid, List, Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { Play, X, CheckCircle, Timer, Download, Loader2, LayoutGrid, List, Pencil, Trash2, ExternalLink, Eye } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Sidebar } from '../components/Sidebar';
 import { useAuth } from '../hooks/useAuth';
@@ -44,6 +44,8 @@ interface ExerciseLog {
 function getEmbedUrl(url: string): string | null {
     const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
     if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
     const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
     if (driveMatch) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
     return null;
@@ -78,6 +80,8 @@ export function WorkoutView() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [todayExercises, setTodayExercises] = useState<TodayExercise[]>([]);
     const [viewMode, setViewMode] = useState<'card' | 'spreadsheet'>('card');
+
+    const [detailModal, setDetailModal] = useState<WorkoutExercise | null>(null);
 
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [editModal, setEditModal] = useState<WorkoutExercise | null>(null);
@@ -243,6 +247,79 @@ export function WorkoutView() {
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                         />
+                    </div>
+                </div>
+            )}
+
+            {detailModal && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+                    onClick={() => setDetailModal(null)}
+                >
+                    <div
+                        className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden max-h-[90vh] flex flex-col"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-5 py-4 bg-blue-600 text-white flex-shrink-0">
+                            <h3 className="text-base font-semibold truncate pr-2">{detailModal.name}</h3>
+                            <button
+                                onClick={() => setDetailModal(null)}
+                                className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors active:scale-95"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Video */}
+                        {detailModal.videoUrl && (
+                            <div className="relative w-full aspect-video bg-black flex-shrink-0">
+                                <iframe
+                                    src={detailModal.videoUrl}
+                                    title={detailModal.name}
+                                    className="w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            </div>
+                        )}
+
+                        {/* Details */}
+                        <div className="p-5 space-y-4 overflow-y-auto">
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-3 text-center">
+                                    <p className="text-xs text-blue-400 dark:text-blue-500 uppercase tracking-wide mb-1">{t('workout_view.sets')}</p>
+                                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{detailModal.sets}</p>
+                                </div>
+                                <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl p-3 text-center">
+                                    <p className="text-xs text-green-400 dark:text-green-500 uppercase tracking-wide mb-1">{t('workout_view.repetitions')}</p>
+                                    <p className="text-xl font-bold text-green-600 dark:text-green-400">{detailModal.repetitions}</p>
+                                </div>
+                                <div className="bg-orange-50 dark:bg-orange-900/20 rounded-2xl p-3 text-center">
+                                    <p className="text-xs text-orange-400 dark:text-orange-500 uppercase tracking-wide mb-1">{t('workout_view.weight')}</p>
+                                    <p className="text-xl font-bold text-orange-600 dark:text-orange-400">{detailModal.weightInKg != null ? `${detailModal.weightInKg} kg` : '—'}</p>
+                                </div>
+                            </div>
+
+                            {detailModal.restTime && (
+                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-800 rounded-2xl px-4 py-3">
+                                    <Timer className="w-4 h-4 text-blue-500" />
+                                    <span>{t('rest_timer.rest_label')}: <strong>{detailModal.restTime}s</strong></span>
+                                </div>
+                            )}
+
+                            {detailModal.videoUrl && (
+                                <a
+                                    href={detailModal.videoUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-2xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95"
+                                >
+                                    <ExternalLink className="w-4 h-4" />
+                                    Abrir vídeo externamente
+                                </a>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -570,15 +647,13 @@ export function WorkoutView() {
                                                     </div>
                                                 )}
                                                 {ex.videoUrl && !embedUrl && (
-                                                    <a
-                                                        href={ex.videoUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95"
-                                                        title="Watch video"
+                                                    <button
+                                                        onClick={() => setDetailModal(ex)}
+                                                        className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors active:scale-95"
+                                                        title={t('workout_view.watch_video')}
                                                     >
-                                                        <ExternalLink className="w-4 h-4" />
-                                                    </a>
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
                                                 )}
                                                 {user.role === 'PERSONALTRAINER' && (
                                                     <>

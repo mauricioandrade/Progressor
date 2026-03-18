@@ -108,10 +108,16 @@ const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border bord
 function getEmbedUrl(url: string): string | null {
     const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
     if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
     const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
     if (driveMatch) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
     return null;
 }
+
+const DAY_PT: Record<string, string> = {
+    MON: 'SEG', TUE: 'TER', WED: 'QUA', THU: 'QUI', FRI: 'SEX', SAT: 'SÁB', SUN: 'DOM',
+};
 
 const MEAL_ORDER = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
 
@@ -941,7 +947,7 @@ export function StudentDetailPage() {
                                 onClick={() => setActiveTab(tab.key)}
                                 className={`flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium transition-colors whitespace-nowrap border-b-2 -mb-px ${
                                     activeTab === tab.key
-                                        ? 'border-violet-500 text-violet-600 dark:text-violet-400'
+                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                 }`}
                             >
@@ -1010,7 +1016,7 @@ export function StudentDetailPage() {
                                         <span className="text-sm text-gray-400">{t('weight_goal.unit')}</span>
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-gray-400">{t('weight_goal.no_goal')}</p>
+                                    <p className="text-sm text-gray-400 text-center py-1">{t('weight_goal.no_goal')}</p>
                                 )}
                             </div>
 
@@ -1039,30 +1045,17 @@ export function StudentDetailPage() {
                                                     </div>
                                                 )}
                                                 {ex.videoUrl && (
-                                                    embedUrl ? (
-                                                        <button
-                                                            onClick={() => setExpandedVideoId(isExpanded ? null : ex.id)}
-                                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors active:scale-95 ${
-                                                                isExpanded
-                                                                    ? 'bg-violet-500 text-white hover:bg-violet-600'
-                                                                    : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                                            }`}
-                                                            title={isExpanded ? 'Hide video' : 'Watch video'}
-                                                        >
-                                                            <Play className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    ) : (
-                                                        <a
-                                                            href={ex.videoUrl}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors active:scale-95"
-                                                            title="Watch video"
-                                                            onClick={e => e.stopPropagation()}
-                                                        >
-                                                            <ExternalLink className="w-3.5 h-3.5" />
-                                                        </a>
-                                                    )
+                                                    <button
+                                                        onClick={() => setExpandedVideoId(isExpanded ? null : ex.id)}
+                                                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors active:scale-95 ${
+                                                            isExpanded
+                                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                                : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                                                        }`}
+                                                        title={isExpanded ? 'Fechar vídeo' : t('workout_view.watch_video')}
+                                                    >
+                                                        <Play className="w-3.5 h-3.5" />
+                                                    </button>
                                                 )}
                                                 {!isNutritionist && (
                                                     <>
@@ -1100,17 +1093,32 @@ export function StudentDetailPage() {
                                             </div>
                                         </div>
                                         {ex.scheduledDays && (
-                                            <p className="mt-2 text-xs text-gray-400">{ex.scheduledDays}</p>
+                                            <p className="mt-2 text-xs text-gray-400">
+                                                {ex.scheduledDays.split(',').map(d => DAY_PT[d.trim()] ?? d.trim()).join(' · ')}
+                                            </p>
                                         )}
-                                        {isExpanded && embedUrl && (
-                                            <div className="mt-3 rounded-2xl overflow-hidden aspect-video bg-black">
-                                                <iframe
-                                                    src={embedUrl}
-                                                    className="w-full h-full"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                    title={ex.name}
-                                                />
+                                        {isExpanded && ex.videoUrl && (
+                                            <div className="mt-3 space-y-2">
+                                                <div className="rounded-2xl overflow-hidden aspect-video bg-black">
+                                                    <iframe
+                                                        src={embedUrl ?? ex.videoUrl}
+                                                        className="w-full h-full"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                        title={ex.name}
+                                                    />
+                                                </div>
+                                                {!embedUrl && (
+                                                    <a
+                                                        href={ex.videoUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center justify-center gap-2 w-full py-2 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-2xl text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors active:scale-95"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                        Abrir vídeo externamente
+                                                    </a>
+                                                )}
                                             </div>
                                         )}
                                     </div>
