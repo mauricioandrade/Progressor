@@ -68,7 +68,7 @@ export function SettingsPage() {
         if (!w || w <= 0) return;
         setIsSavingWeight(true);
         try {
-            if (user.role === 'STUDENT') {
+            if (user?.role === 'STUDENT') {
                 await api.post('/measurements/my', { weight: w });
                 const waterGoal = Math.round(w * 35);
                 await api.patch('/nutrition/water/goal', { goal: waterGoal });

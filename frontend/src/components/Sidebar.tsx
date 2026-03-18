@@ -10,7 +10,6 @@ import {
     Moon,
     LogOut,
     Ruler,
-    PenLine,
     UtensilsCrossed,
     Salad,
     Settings,

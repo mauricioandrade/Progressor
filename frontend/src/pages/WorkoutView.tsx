@@ -724,7 +724,7 @@ export function WorkoutView() {
                                                             <YAxis hide domain={['auto', 'auto']} />
                                                             <Tooltip
                                                                 contentStyle={{ fontSize: '11px', borderRadius: '8px', border: 'none', background: 'rgba(0,0,0,0.75)', color: '#fff' }}
-                                                                formatter={(v: number) => [`${v} kg`, '']}
+                                                                formatter={(value: any) => [value != null ? `${value} kg` : '', '']}
                                                             />
                                                             <Line type="monotone" dataKey="weight" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
                                                         </LineChart>
