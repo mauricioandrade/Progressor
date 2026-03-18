@@ -1,0 +1,74 @@
+# Render Blueprint — deploys the full Progressor monorepo.
+# Docs: https://render.com/docs/blueprint-spec
+
+databases:
+  - name: progressor-db
+    databaseName: progressor
+    user: progressor
+    plan: free
+    # PostgreSQL 15 is Render's current default for free-tier instances.
+
+services:
+  # ──────────────────────────────────────────────
+  # 1. Backend — Spring Boot (Docker)
+  # ──────────────────────────────────────────────
+  - type: web
+    name: progressor-api
+    env: docker
+    rootDir: backend
+    plan: free
+    envVars:
+      # Individual DB properties let us construct a proper JDBC URL inside
+      # the Docker CMD without needing to rewrite the postgres:// scheme.
+      - key: DB_HOST
+        fromDatabase:
+          name: progressor-db
+          property: host
+
+      - key: DB_PORT
+        fromDatabase:
+          name: progressor-db
+          property: port
+
+      - key: DB_NAME
+        fromDatabase:
+          name: progressor-db
+          property: database
+
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: progressor-db
+          property: user
+
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: progressor-db
+          property: password
+
+      # Set this in the Render dashboard after first deploy.
+      # Must be a 64-character hex string (256-bit key).
+      - key: ENCRYPTION_KEY
+        sync: false
+
+  # ──────────────────────────────────────────────
+  # 2. Frontend — React/Vite (Static Site)
+  # ──────────────────────────────────────────────
+  - type: web
+    name: progressor-web
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    plan: free
+    envVars:
+      # Set this in the Render dashboard before (or just after) the first build.
+      # Value should be the full backend URL, e.g.:
+      #   https://progressor-api.onrender.com/api
+      - key: VITE_API_URL
+        sync: false
+
+    routes:
+      # Rewrite all paths to index.html so React Router handles navigation.
+      - type: rewrite
+        source: /*
+        destination: /index.html
