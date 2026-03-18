@@ -18,6 +18,9 @@ public class StudentEntity extends UserEntity {
   @Column(name = "current_water_intake")
   private Integer currentWaterIntake = 0;
 
+  @Column(name = "weight_goal")
+  private Double weightGoal;
+
   public StudentEntity() {
   }
 
@@ -51,5 +54,13 @@ public class StudentEntity extends UserEntity {
 
   public void setCurrentWaterIntake(Integer currentWaterIntake) {
     this.currentWaterIntake = currentWaterIntake;
+  }
+
+  public Double getWeightGoal() {
+    return weightGoal;
+  }
+
+  public void setWeightGoal(Double weightGoal) {
+    this.weightGoal = weightGoal;
   }
 }

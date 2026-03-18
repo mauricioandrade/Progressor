@@ -5,6 +5,7 @@ import com.mauricioandrade.progressor.core.domain.workout.WorkoutExercise;
 import com.mauricioandrade.progressor.infrastructure.persistence.mappers.WorkoutExerciseMapper;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataWorkoutRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
@@ -40,5 +41,24 @@ public class WorkoutRepositoryAdapter implements WorkoutRepository {
   public List<WorkoutExercise> findByBlockId(UUID blockId) {
     return springDataRepository.findByBlockId(blockId).stream()
         .map(WorkoutExerciseMapper::toDomain).toList();
+  }
+
+  @Override
+  public Optional<WorkoutExercise> findById(UUID id) {
+    return springDataRepository.findById(id).map(WorkoutExerciseMapper::toDomain);
+  }
+
+  @Override
+  public void deleteById(UUID id) {
+    springDataRepository.deleteById(id);
+  }
+
+  @Override
+  public WorkoutExercise update(UUID id, WorkoutExercise exercise) {
+    var existing = springDataRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Exercise not found: " + id));
+    var entity = WorkoutExerciseMapper.toEntity(exercise, existing.getStudentId());
+    springDataRepository.save(entity);
+    return exercise;
   }
 }

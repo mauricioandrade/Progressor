@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, X, CheckCircle, Timer, Download, Loader2, LayoutGrid, List } from 'lucide-react';
+import { Play, X, CheckCircle, Timer, Download, Loader2, LayoutGrid, List, Pencil, Trash2, ExternalLink } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Sidebar } from '../components/Sidebar';
 import { useAuth } from '../hooks/useAuth';
 import { useRestTimer } from '../contexts/RestTimerContext';
 import { api } from '../services/api';
 import { WorkoutSpreadsheetView } from '../components/WorkoutSpreadsheetView';
+import toast from 'react-hot-toast';
 
 interface WorkoutExercise {
     id: string;
@@ -78,13 +79,73 @@ export function WorkoutView() {
     const [todayExercises, setTodayExercises] = useState<TodayExercise[]>([]);
     const [viewMode, setViewMode] = useState<'card' | 'spreadsheet'>('card');
 
-    useEffect(() => {
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [editModal, setEditModal] = useState<WorkoutExercise | null>(null);
+    const [editForm, setEditForm] = useState<Partial<WorkoutExercise> & { scheduledDaysText?: string }>({});
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+    function loadExercises() {
+        setIsLoading(true);
         api.get('/workouts/my')
             .then(r => setExercises(r.data))
             .catch(() => {})
             .finally(() => setIsLoading(false));
+    }
+
+    useEffect(() => {
+        loadExercises();
         api.get('/workouts/today').then(r => setTodayExercises(r.data)).catch(() => {});
     }, []);
+
+    async function handleDeleteExercise(id: string) {
+        if (!confirm(t('edit_exercise.title') + '?')) return;
+        setDeletingId(id);
+        try {
+            await api.delete(`/workouts/${id}`);
+            setExercises(prev => prev.filter(e => e.id !== id));
+            toast.success(t('toast.exercise_deleted'));
+        } catch {
+            toast.error(t('toast.error_generic'));
+        } finally {
+            setDeletingId(null);
+        }
+    }
+
+    function openEditModal(ex: WorkoutExercise) {
+        setEditModal(ex);
+        setEditForm({
+            ...ex,
+            scheduledDaysText: ex.scheduledDays ?? '',
+        });
+    }
+
+    async function handleSaveEdit() {
+        if (!editModal) return;
+        setIsSavingEdit(true);
+        try {
+            const scheduledDays = editForm.scheduledDaysText
+                ? editForm.scheduledDaysText.split(',').map(d => d.trim()).filter(Boolean)
+                : [];
+            const { data } = await api.put(`/workouts/${editModal.id}`, {
+                name: editForm.name,
+                sets: Number(editForm.sets),
+                repetitions: Number(editForm.repetitions),
+                measurementType: editForm.measurementType,
+                weightInKg: editForm.weightInKg ?? null,
+                videoUrl: editForm.videoUrl ?? null,
+                restTime: editForm.restTime ?? null,
+                workoutLabel: editForm.workoutLabel ?? null,
+                scheduledDays: scheduledDays.length > 0 ? scheduledDays : null,
+            });
+            setExercises(prev => prev.map(e => e.id === editModal.id ? data : e));
+            setEditModal(null);
+            toast.success(t('toast.exercise_updated'));
+        } catch {
+            toast.error(t('toast.error_generic'));
+        } finally {
+            setIsSavingEdit(false);
+        }
+    }
 
     if (!user) return null;
 
@@ -274,6 +335,46 @@ export function WorkoutView() {
                 </div>
             )}
 
+            {editModal && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+                    onClick={() => !isSavingEdit && setEditModal(null)}
+                >
+                    <div
+                        className="w-full max-w-sm bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-black/5 dark:border-white/10 p-6 space-y-3"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">{t('edit_exercise.title')}</h3>
+                        <div className="space-y-2">
+                            <input className={inputClass} placeholder={t('edit_exercise.name')} value={editForm.name ?? ''} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
+                            <div className="grid grid-cols-2 gap-2">
+                                <input className={inputClass} type="number" min={1} placeholder={t('edit_exercise.sets')} value={editForm.sets ?? ''} onChange={e => setEditForm(f => ({ ...f, sets: Number(e.target.value) }))} />
+                                <input className={inputClass} type="number" min={1} placeholder={t('edit_exercise.reps')} value={editForm.repetitions ?? ''} onChange={e => setEditForm(f => ({ ...f, repetitions: Number(e.target.value) }))} />
+                            </div>
+                            <select className={inputClass} value={editForm.measurementType ?? 'WEIGHT'} onChange={e => setEditForm(f => ({ ...f, measurementType: e.target.value }))}>
+                                <option value="WEIGHT">{t('edit_exercise.type_weight')}</option>
+                                <option value="BODYWEIGHT">{t('edit_exercise.type_bodyweight')}</option>
+                                <option value="SPEED">{t('edit_exercise.type_speed')}</option>
+                                <option value="TIME">{t('edit_exercise.type_time')}</option>
+                            </select>
+                            <input className={inputClass} type="number" min={0} step={0.5} placeholder={t('edit_exercise.weight')} value={editForm.weightInKg ?? ''} onChange={e => setEditForm(f => ({ ...f, weightInKg: e.target.value ? Number(e.target.value) : null }))} />
+                            <input className={inputClass} placeholder={t('edit_exercise.video_url')} value={editForm.videoUrl ?? ''} onChange={e => setEditForm(f => ({ ...f, videoUrl: e.target.value }))} />
+                            <input className={inputClass} type="number" min={0} placeholder={t('edit_exercise.rest_time')} value={editForm.restTime ?? ''} onChange={e => setEditForm(f => ({ ...f, restTime: e.target.value ? Number(e.target.value) : null }))} />
+                            <input className={inputClass} placeholder={t('edit_exercise.label')} value={editForm.workoutLabel ?? ''} onChange={e => setEditForm(f => ({ ...f, workoutLabel: e.target.value }))} />
+                            <input className={inputClass} placeholder={t('edit_exercise.days')} value={editForm.scheduledDaysText ?? ''} onChange={e => setEditForm(f => ({ ...f, scheduledDaysText: e.target.value }))} />
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                            <button onClick={() => setEditModal(null)} className="flex-1 py-2.5 rounded-2xl text-sm font-medium bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95">
+                                {t('common.cancel')}
+                            </button>
+                            <button onClick={handleSaveEdit} disabled={isSavingEdit || !editForm.name} className="flex-1 py-2.5 rounded-2xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors active:scale-95">
+                                {isSavingEdit ? '...' : t('edit_exercise.save')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex-1 min-w-0">
                 <header className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl border-b border-black/5 dark:border-white/10 p-5 sticky top-0 z-10">
                     <div className="flex items-center justify-between">
@@ -435,6 +536,36 @@ export function WorkoutView() {
                                                     <div className="bg-purple-50/80 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">
                                                         {ex.tonnage.toFixed(1)} kg
                                                     </div>
+                                                )}
+                                                {ex.videoUrl && !embedUrl && (
+                                                    <a
+                                                        href={ex.videoUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95"
+                                                        title="Watch video"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                    </a>
+                                                )}
+                                                {user.role === 'PERSONALTRAINER' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => openEditModal(ex)}
+                                                            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95"
+                                                            title="Edit exercise"
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteExercise(ex.id)}
+                                                            disabled={deletingId === ex.id}
+                                                            className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors active:scale-95"
+                                                            title="Delete exercise"
+                                                        >
+                                                            {deletingId === ex.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                        </button>
+                                                    </>
                                                 )}
                                                 <button
                                                     onClick={() => startTimer(ex.restTime ?? 90, ex.name)}

@@ -5,9 +5,11 @@ import com.mauricioandrade.progressor.core.application.usecases.GetStudentFreque
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,5 +37,10 @@ public class CheckInController {
   public ResponseEntity<List<LocalDate>> getMyFrequency(
       @AuthenticationPrincipal UserEntity currentUser) {
     return ResponseEntity.ok(getStudentFrequencyUseCase.execute(currentUser.getId()));
+  }
+
+  @GetMapping("/student/{studentId}")
+  public ResponseEntity<List<LocalDate>> getStudentFrequency(@PathVariable UUID studentId) {
+    return ResponseEntity.ok(getStudentFrequencyUseCase.execute(studentId));
   }
 }

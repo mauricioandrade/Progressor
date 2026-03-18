@@ -77,7 +77,8 @@ const resources = {
                 today_workout: "Today's Workout",
                 no_today_workout: "Rest day. Enjoy your recovery!",
                 exercises_count: "{{count}} exercise",
-                exercises_count_plural: "{{count}} exercises"
+                exercises_count_plural: "{{count}} exercises",
+                initial_weight: "Initial Weight"
             },
             students_list: {
                 title: "My Students",
@@ -382,6 +383,7 @@ const resources = {
                 tab_diet: "Diet",
                 tab_measurements: "Assessments",
                 tab_photos: "Photos",
+                tab_history: "History",
                 no_workout: "No workout plan assigned yet.",
                 no_diet: "No diet plan assigned yet.",
                 no_measurements: "No assessments recorded yet.",
@@ -389,7 +391,8 @@ const resources = {
                 latest_assessment: "Latest Assessment"
             },
             common: {
-                cancel: "Cancel"
+                cancel: "Cancel",
+                add: "Add"
             },
             toast: {
                 workout_saved: "Workout saved!",
@@ -398,7 +401,79 @@ const resources = {
                 food_error: "Error fetching food data.",
                 plan_saved: "Diet plan saved!",
                 measurement_saved: "Measurements saved!",
-                error_generic: "Something went wrong. Try again."
+                error_generic: "Something went wrong. Try again.",
+                exercise_updated: "Exercise updated!",
+                exercise_deleted: "Exercise deleted!",
+                weight_goal_saved: "Weight goal saved!",
+                weight_goal_reached: "Goal reached! Your weight is at the target!",
+                weight_goal_near: "Almost there! You are within 2kg of your goal!",
+                meal_plan_deleted: "Diet plan deleted!",
+                meal_plan_updated: "Diet plan updated!"
+            },
+            edit_exercise: {
+                title: "Edit Exercise",
+                name: "Exercise Name",
+                sets: "Sets",
+                reps: "Repetitions",
+                measurement_type: "Measurement Type",
+                weight: "Load (kg)",
+                video_url: "Video URL",
+                rest_time: "Rest time (s)",
+                label: "Label (e.g. Push)",
+                days: "Days (e.g. MON,WED,FRI)",
+                save: "Save",
+                type_weight: "Weight",
+                type_bodyweight: "Bodyweight",
+                type_speed: "Speed",
+                type_time: "Time"
+            },
+            weight_goal: {
+                title: "Weight Goal",
+                label: "Meta de Peso",
+                placeholder: "e.g. 75",
+                set_button: "Set Goal",
+                no_goal: "No goal set",
+                progress_label: "Progress toward goal",
+                current: "Current",
+                goal: "Goal",
+                unit: "kg",
+                edit_title: "Edit Weight Goal"
+            },
+            history: {
+                title: "History",
+                meal_plan_history: "Diet History",
+                checkin_history: "Attendance History",
+                no_meal_plans: "No diet plans found.",
+                no_checkins: "No attendance records found.",
+                plan_created: "Created on",
+                goal_bulking: "Bulking",
+                goal_cutting: "Cutting",
+                goal_maintenance: "Maintenance"
+            },
+            meal_plan: {
+                edit_title: "Edit Plan",
+                name_label: "Plan Name",
+                goal_label: "Goal",
+                cheat_meal: "Cheat Meal",
+                deleted: "Diet plan deleted!",
+                updated: "Diet plan updated!",
+                add_item: "Add Item",
+                add_meal: "Add Meal",
+                item_name: "Food name",
+                item_qty: "Qty",
+                item_unit: "Unit",
+                item_prot: "Prot",
+                item_carb: "Carb",
+                item_fat: "Fat",
+                totals_label: "Total of the day",
+                save: "Save",
+                add_food_btn: "Add Food",
+                add_food_form_title: "New Food Item",
+                edit_item: "Edit item",
+                remove_item: "Remove item",
+                done_editing: "Done",
+                keep_adding_hint: "Fields cleared — add another item",
+                auto_recalc_hint: "Macros are recalculated automatically when Qty changes"
             }
         }
     },
@@ -476,7 +551,8 @@ const resources = {
                 today_workout: "Treino de Hoje",
                 no_today_workout: "Dia de descanso. Aproveite a recuperação!",
                 exercises_count: "{{count}} exercício",
-                exercises_count_plural: "{{count}} exercícios"
+                exercises_count_plural: "{{count}} exercícios",
+                initial_weight: "Peso Inicial"
             },
             students_list: {
                 title: "Meus Alunos",
@@ -781,6 +857,7 @@ const resources = {
                 tab_diet: "Dieta",
                 tab_measurements: "Avaliações",
                 tab_photos: "Fotos",
+                tab_history: "Histórico",
                 no_workout: "Nenhum plano de treino atribuído ainda.",
                 no_diet: "Nenhum plano alimentar atribuído ainda.",
                 no_measurements: "Nenhuma avaliação registrada ainda.",
@@ -788,7 +865,8 @@ const resources = {
                 latest_assessment: "Última Avaliação"
             },
             common: {
-                cancel: "Cancelar"
+                cancel: "Cancelar",
+                add: "Adicionar"
             },
             toast: {
                 workout_saved: "Treino salvo!",
@@ -797,7 +875,79 @@ const resources = {
                 food_error: "Erro ao buscar alimentos.",
                 plan_saved: "Plano alimentar salvo!",
                 measurement_saved: "Medidas salvas!",
-                error_generic: "Algo deu errado. Tente novamente."
+                error_generic: "Algo deu errado. Tente novamente.",
+                exercise_updated: "Exercício atualizado!",
+                exercise_deleted: "Exercício excluído!",
+                weight_goal_saved: "Meta de peso salva!",
+                weight_goal_reached: "Meta atingida! Seu peso chegou ao objetivo!",
+                weight_goal_near: "Quase lá! Você está a menos de 2kg da sua meta!",
+                meal_plan_deleted: "Plano alimentar excluído!",
+                meal_plan_updated: "Plano alimentar atualizado!"
+            },
+            edit_exercise: {
+                title: "Editar Exercício",
+                name: "Nome do Exercício",
+                sets: "Séries",
+                reps: "Repetições",
+                measurement_type: "Tipo de Medição",
+                weight: "Carga (kg)",
+                video_url: "URL do Vídeo",
+                rest_time: "Descanso (s)",
+                label: "Rótulo (ex.: Empurrar)",
+                days: "Dias (ex.: SEG,QUA,SEX)",
+                save: "Salvar",
+                type_weight: "Carga",
+                type_bodyweight: "Peso Corporal",
+                type_speed: "Velocidade",
+                type_time: "Tempo"
+            },
+            weight_goal: {
+                title: "Meta de Peso",
+                label: "Meta de Peso",
+                placeholder: "Ex.: 75",
+                set_button: "Definir Meta",
+                no_goal: "Meta não definida",
+                progress_label: "Progresso em direção à meta",
+                current: "Atual",
+                goal: "Meta",
+                unit: "kg",
+                edit_title: "Editar Meta de Peso"
+            },
+            history: {
+                title: "Histórico",
+                meal_plan_history: "Histórico de Dietas",
+                checkin_history: "Frequência",
+                no_meal_plans: "Nenhum plano alimentar encontrado.",
+                no_checkins: "Nenhuma frequência registrada.",
+                plan_created: "Criado em",
+                goal_bulking: "Ganho de Massa",
+                goal_cutting: "Definição",
+                goal_maintenance: "Manutenção"
+            },
+            meal_plan: {
+                edit_title: "Editar Plano",
+                name_label: "Nome do Plano",
+                goal_label: "Objetivo",
+                cheat_meal: "Refeição Livre",
+                deleted: "Plano alimentar excluído!",
+                updated: "Plano alimentar atualizado!",
+                add_item: "Adicionar Item",
+                add_meal: "Adicionar Refeição",
+                item_name: "Nome do alimento",
+                item_qty: "Qtd",
+                item_unit: "Unid",
+                item_prot: "Prot",
+                item_carb: "Carb",
+                item_fat: "Gord",
+                totals_label: "Total do dia",
+                save: "Salvar",
+                add_food_btn: "Adicionar Alimento",
+                add_food_form_title: "Novo Alimento",
+                edit_item: "Editar item",
+                remove_item: "Remover item",
+                done_editing: "Concluído",
+                keep_adding_hint: "Campos limpos — adicione outro alimento",
+                auto_recalc_hint: "Macros recalculados automaticamente ao alterar a Qtd"
             }
         }
     }

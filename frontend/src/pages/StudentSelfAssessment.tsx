@@ -71,9 +71,14 @@ export function StudentSelfAssessment() {
 
         try {
             setIsSubmitting(true);
-            await api.post('/measurements/my', payload);
+            const { data } = await api.post('/measurements/my', payload);
             setSuccessMessage(t('self_assessment.success'));
             toast.success(t('toast.measurement_saved'));
+            if (data?.weightGoalStatus === 'REACHED') {
+                setTimeout(() => toast.success(t('toast.weight_goal_reached'), { duration: 5000 }), 500);
+            } else if (data?.weightGoalStatus === 'NEARLY_REACHED') {
+                setTimeout(() => toast.success(t('toast.weight_goal_near'), { duration: 5000 }), 500);
+            }
             setForm(emptyForm());
             setTimeout(() => navigate('/measurements'), 1500);
         } catch {

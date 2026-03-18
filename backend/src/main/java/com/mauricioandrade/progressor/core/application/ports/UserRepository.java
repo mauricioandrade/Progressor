@@ -34,6 +34,10 @@ public interface UserRepository {
 
   void updateAvatar(UUID userId, byte[] avatar);
 
+  void updateWeightGoal(UUID studentId, Double goal);
+
+  java.util.Optional<Double> findWeightGoalByStudentId(UUID studentId);
+
   Optional<UUID> findIdByEmail(String email);
 
   Optional<UUID> findIdByValidResetToken(String token);

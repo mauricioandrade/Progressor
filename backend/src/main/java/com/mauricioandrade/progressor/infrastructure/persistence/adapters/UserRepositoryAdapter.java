@@ -158,6 +158,20 @@ public class UserRepositoryAdapter implements UserRepository {
   }
 
   @Override
+  public void updateWeightGoal(UUID studentId, Double goal) {
+    springDataStudentRepository.findById(studentId).ifPresent(entity -> {
+      entity.setWeightGoal(goal);
+      springDataStudentRepository.save(entity);
+    });
+  }
+
+  @Override
+  public Optional<Double> findWeightGoalByStudentId(UUID studentId) {
+    return springDataStudentRepository.findById(studentId)
+        .map(entity -> entity.getWeightGoal());
+  }
+
+  @Override
   public Optional<UUID> findIdByEmail(String email) {
     String enc = SearchableEncryptedStringConverter.encrypt(email);
     return springDataRepository.findByEmail(enc)

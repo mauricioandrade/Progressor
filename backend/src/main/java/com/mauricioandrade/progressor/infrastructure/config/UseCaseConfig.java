@@ -32,7 +32,14 @@ import com.mauricioandrade.progressor.core.application.usecases.AssignStudentToN
 import com.mauricioandrade.progressor.core.application.usecases.AssignStudentToTrainerUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.CheckInStudentUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.CreateMealPlanUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.DeleteMealPlanUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.UpdateMealPlanUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetMealPlanHistoryUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.CreateWorkoutUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.DeleteWorkoutExerciseUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetWeightGoalUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.UpdateWeightGoalUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.UpdateWorkoutExerciseUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.FindStudentByEmailForNutritionistUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.FindStudentByEmailUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GenerateMealPlanReportUseCase;
@@ -117,6 +124,18 @@ public class UseCaseConfig {
   }
 
   @Bean
+  public DeleteWorkoutExerciseUseCase deleteWorkoutExerciseUseCase(
+      WorkoutRepository workoutRepository) {
+    return new DeleteWorkoutExerciseUseCase(workoutRepository);
+  }
+
+  @Bean
+  public UpdateWorkoutExerciseUseCase updateWorkoutExerciseUseCase(
+      WorkoutRepository workoutRepository) {
+    return new UpdateWorkoutExerciseUseCase(workoutRepository);
+  }
+
+  @Bean
   public GetStudentWorkoutUseCase getStudentWorkoutUseCase(WorkoutRepository workoutRepository) {
     return new GetStudentWorkoutUseCase(workoutRepository);
   }
@@ -148,6 +167,16 @@ public class UseCaseConfig {
   public RecordMeasurementUseCase recordMeasurementUseCase(
       MeasurementRepository measurementRepository, UserRepository userRepository) {
     return new RecordMeasurementUseCase(measurementRepository, userRepository);
+  }
+
+  @Bean
+  public UpdateWeightGoalUseCase updateWeightGoalUseCase(UserRepository userRepository) {
+    return new UpdateWeightGoalUseCase(userRepository);
+  }
+
+  @Bean
+  public GetWeightGoalUseCase getWeightGoalUseCase(UserRepository userRepository) {
+    return new GetWeightGoalUseCase(userRepository);
   }
 
   @Bean
@@ -306,5 +335,20 @@ public class UseCaseConfig {
   public CreateWorkoutBlockUseCase createWorkoutBlockUseCase(
       WorkoutBlockRepository workoutBlockRepository, WorkoutPlanRepository workoutPlanRepository) {
     return new CreateWorkoutBlockUseCase(workoutBlockRepository, workoutPlanRepository);
+  }
+
+  @Bean
+  public DeleteMealPlanUseCase deleteMealPlanUseCase(MealPlanRepository mealPlanRepository) {
+    return new DeleteMealPlanUseCase(mealPlanRepository);
+  }
+
+  @Bean
+  public UpdateMealPlanUseCase updateMealPlanUseCase(MealPlanRepository mealPlanRepository) {
+    return new UpdateMealPlanUseCase(mealPlanRepository);
+  }
+
+  @Bean
+  public GetMealPlanHistoryUseCase getMealPlanHistoryUseCase(MealPlanRepository mealPlanRepository) {
+    return new GetMealPlanHistoryUseCase(mealPlanRepository);
   }
 }

@@ -1,11 +1,13 @@
 package com.mauricioandrade.progressor.infrastructure.persistence.entities;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +23,9 @@ public class MealPlanEntity {
   private String name;
   private String goal;
   private boolean cheatMeal = false;
+
+  @Column(name = "created_at")
+  private LocalDateTime createdAt;
 
   @OneToMany(mappedBy = "mealPlan", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<MealItemEntity> items = new ArrayList<>();
@@ -39,6 +44,8 @@ public class MealPlanEntity {
   public void setGoal(String goal) { this.goal = goal; }
   public boolean isCheatMeal() { return cheatMeal; }
   public void setCheatMeal(boolean cheatMeal) { this.cheatMeal = cheatMeal; }
+  public LocalDateTime getCreatedAt() { return createdAt; }
+  public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
   public List<MealItemEntity> getItems() { return items; }
   public void setItems(List<MealItemEntity> items) { this.items = items; }
 }

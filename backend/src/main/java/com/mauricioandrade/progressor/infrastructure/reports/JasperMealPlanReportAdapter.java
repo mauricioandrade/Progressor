@@ -48,7 +48,7 @@ public class JasperMealPlanReportAdapter implements MealPlanReportGenerator {
   @Override
   public byte[] generate(UUID studentId, Locale locale) {
     try {
-      MealPlanEntity plan = mealPlanRepository.findTopByStudentIdOrderByIdDesc(studentId)
+      MealPlanEntity plan = mealPlanRepository.findTopByStudentIdOrderByCreatedAtDesc(studentId)
           .orElseThrow(() -> new IllegalArgumentException("No meal plan found for this student"));
 
       ResourceBundle bundle = ResourceBundle.getBundle("reports.report_labels", locale);

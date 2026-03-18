@@ -6,7 +6,9 @@ import com.mauricioandrade.progressor.core.domain.nutrition.MealPlan;
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.MealItemEntity;
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.MealPlanEntity;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataMealPlanRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
@@ -22,13 +24,18 @@ public class MealPlanRepositoryAdapter implements MealPlanRepository {
 
   @Override
   public void save(MealPlan mealPlan) {
-    MealPlanEntity entity = new MealPlanEntity();
+    MealPlanEntity entity = springDataRepository.findById(mealPlan.getId())
+        .orElseGet(MealPlanEntity::new);
     entity.setId(mealPlan.getId());
     entity.setStudentId(mealPlan.getStudentId());
     entity.setNutritionistId(mealPlan.getNutritionistId());
     entity.setName(mealPlan.getName());
     entity.setGoal(mealPlan.getGoal());
     entity.setCheatMeal(mealPlan.isCheatMeal());
+    if (entity.getCreatedAt() == null) {
+      entity.setCreatedAt(LocalDateTime.now());
+    }
+    entity.getItems().clear();
     var items = mealPlan.getItems().stream().map(i -> {
       MealItemEntity ie = new MealItemEntity();
       ie.setId(i.getId());
@@ -44,18 +51,47 @@ public class MealPlanRepositoryAdapter implements MealPlanRepository {
       ie.setMealPlan(entity);
       return ie;
     }).toList();
-    entity.setItems(new ArrayList<>(items));
+    entity.getItems().addAll(items);
     springDataRepository.save(entity);
   }
 
   @Override
   public Optional<MealPlan> findByStudentId(UUID studentId) {
-    return springDataRepository.findTopByStudentIdOrderByIdDesc(studentId).map(e -> {
-      var items = e.getItems().stream().map(i -> new MealItem(i.getId(), i.getMealTime(), i.getName(),
-          i.getFoodDescription(), i.getCaloriesKcal(), i.getProteinG(), i.getCarbsG(), i.getFatG(),
-          i.getQuantity(), i.getBaseUnit())).toList();
-      return new MealPlan(e.getId(), e.getStudentId(), e.getNutritionistId(), e.getName(),
-          e.getGoal(), items, e.isCheatMeal());
+    return springDataRepository.findTopByStudentIdOrderByCreatedAtDesc(studentId).map(this::toDomain);
+  }
+
+  @Override
+  public Optional<MealPlan> findById(UUID id) {
+    return springDataRepository.findById(id).map(this::toDomain);
+  }
+
+  @Override
+  public void deleteById(UUID id) {
+    springDataRepository.deleteById(id);
+  }
+
+  @Override
+  public void updateMetadata(UUID id, String name, String goal, boolean cheatMeal) {
+    springDataRepository.findById(id).ifPresent(entity -> {
+      entity.setName(name);
+      entity.setGoal(goal);
+      entity.setCheatMeal(cheatMeal);
+      springDataRepository.save(entity);
     });
+  }
+
+  @Override
+  public List<MealPlan> findAllByStudentId(UUID studentId) {
+    return springDataRepository.findAllByStudentIdOrderByCreatedAtDesc(studentId).stream()
+        .map(this::toDomain)
+        .toList();
+  }
+
+  private MealPlan toDomain(MealPlanEntity e) {
+    var items = e.getItems().stream().map(i -> new MealItem(i.getId(), i.getMealTime(), i.getName(),
+        i.getFoodDescription(), i.getCaloriesKcal(), i.getProteinG(), i.getCarbsG(), i.getFatG(),
+        i.getQuantity(), i.getBaseUnit())).toList();
+    return new MealPlan(e.getId(), e.getStudentId(), e.getNutritionistId(), e.getName(),
+        e.getGoal(), items, e.isCheatMeal());
   }
 }

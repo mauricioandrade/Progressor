@@ -10,6 +10,7 @@ public class Student extends User {
   private UUID nutritionistId;
   private int dailyWaterGoal;
   private int currentWaterIntake;
+  private Double weightGoal;
 
   public Student(UUID id, String firstName, String lastName, Email email, String password,
       LocalDate birthDate) {
@@ -50,5 +51,13 @@ public class Student extends User {
 
   public void addWaterIntake(int amount) {
     this.currentWaterIntake += amount;
+  }
+
+  public Double getWeightGoal() {
+    return weightGoal;
+  }
+
+  public void setWeightGoal(Double weightGoal) {
+    this.weightGoal = weightGoal;
   }
 }
