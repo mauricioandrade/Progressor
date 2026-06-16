@@ -1,35 +1,27 @@
-import { jwtDecode } from 'jwt-decode';
+import type { UserInfo } from '../services/auth';
 
-interface TokenPayload {
-    sub: string;
-    role: 'STUDENT' | 'PERSONALTRAINER' | 'NUTRITIONIST';
-    userId: string;
-    exp: number;
-}
+export function getAuthState() {
+    const raw = localStorage.getItem('@Progressor:user');
 
-export function useAuth() {
-    const token = localStorage.getItem('@Progressor:token');
-
-    if (!token) {
+    if (!raw) {
         return { signed: false, user: null };
     }
 
     try {
-        const decoded = jwtDecode<TokenPayload>(token);
-        const isTokenExpired = Date.now() >= decoded.exp * 1000;
+        const user = JSON.parse(raw) as UserInfo;
 
-        if (isTokenExpired) {
-            localStorage.removeItem('@Progressor:token');
+        if (!user.expiresAt || new Date(user.expiresAt) <= new Date()) {
+            localStorage.removeItem('@Progressor:user');
             return { signed: false, user: null };
         }
 
         return {
             signed: true,
             user: {
-                id: decoded.userId,
-                email: decoded.sub,
-                role: decoded.role,
-            }
+                id: user.userId,
+                email: user.email,
+                role: user.role,
+            },
         };
     } catch {
         return { signed: false, user: null };

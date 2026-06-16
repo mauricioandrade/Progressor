@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
+import { authService } from '../services/auth';
 import {
     LayoutDashboard,
     Dumbbell,
@@ -28,8 +29,8 @@ export function Sidebar({ role }: SidebarProps) {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
 
-    function handleLogout() {
-        localStorage.removeItem('@Progressor:token');
+    async function handleLogout() {
+        await authService.signOut();
         navigate('/login', { replace: true });
     }
 

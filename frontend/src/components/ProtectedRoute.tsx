@@ -1,9 +1,10 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import { getAuthState } from '../hooks/useAuth';
 
 export function ProtectedRoute() {
-    const token = localStorage.getItem('@Progressor:token');
+    const { signed } = getAuthState();
 
-    if (!token) {
+    if (!signed) {
         return <Navigate to="/login" replace />;
     }
 
