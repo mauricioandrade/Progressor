@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { ConversationList } from '../components/ConversationList';
@@ -8,19 +7,16 @@ import { getAuthState } from '../hooks/useAuth';
 import { ArrowLeft, MessageSquare } from 'lucide-react';
 
 export function ChatPage() {
-  const { partnerId: routePartnerId } = useParams<{ partnerId?: string }>();
+  const { partnerId: selectedPartnerId } = useParams<{ partnerId?: string }>();
   const navigate = useNavigate();
   const { user } = getAuthState();
   const { data: conversations = [] } = useConversations();
-
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string | undefined>(routePartnerId);
 
   if (!user) return null;
 
   const selectedConv = conversations.find((c) => c.partnerId === selectedPartnerId);
 
   function handleSelect(partnerId: string) {
-    setSelectedPartnerId(partnerId);
     navigate(`/chat/${partnerId}`, { replace: true });
   }
 
@@ -66,7 +62,6 @@ export function ChatPage() {
             <div className="px-4 pt-4 pb-2 border-b border-black/5 dark:border-white/[0.07] shrink-0">
               <button
                 onClick={() => {
-                  setSelectedPartnerId(undefined);
                   navigate('/chat', { replace: true });
                 }}
                 className="flex items-center gap-2 text-blue-600 text-sm font-medium"

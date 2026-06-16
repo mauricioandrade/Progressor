@@ -77,4 +77,14 @@ public class MealConsumptionLogRepositoryAdapter implements MealConsumptionLogRe
             row -> (LocalDate) row[1]
         ));
   }
+
+  @Override
+  public Map<UUID, Integer> findConsumedCountsByStudentIds(Collection<UUID> studentIds, LocalDate date) {
+    if (studentIds.isEmpty()) return Map.of();
+    return repository.findConsumedCountsByStudentIds(studentIds, date).stream()
+        .collect(Collectors.toMap(
+            row -> (UUID) row[0],
+            row -> ((Number) row[1]).intValue()
+        ));
+  }
 }

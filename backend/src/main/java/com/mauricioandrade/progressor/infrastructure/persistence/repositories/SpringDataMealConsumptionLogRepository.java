@@ -30,4 +30,7 @@ public interface SpringDataMealConsumptionLogRepository
 
   @Query("SELECT l.studentId, MAX(l.logDate) FROM MealConsumptionLogEntity l WHERE l.studentId IN :studentIds GROUP BY l.studentId")
   List<Object[]> findLastLogDatesByStudentIds(@Param("studentIds") Collection<UUID> studentIds);
+
+  @Query("SELECT l.studentId, COUNT(l.id) FROM MealConsumptionLogEntity l WHERE l.studentId IN :studentIds AND l.logDate = :date AND l.mealPlanItemId IS NOT NULL GROUP BY l.studentId")
+  List<Object[]> findConsumedCountsByStudentIds(@Param("studentIds") Collection<UUID> studentIds, @Param("date") LocalDate date);
 }

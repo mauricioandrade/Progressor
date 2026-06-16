@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
 import { authService } from '../services/auth';
-import { useConversations } from '../hooks/queries';
+import { useQueryClient, QK } from '../hooks/queries';
+import type { ConversationSummary } from '../hooks/queries';
 import {
     LayoutDashboard,
     Dumbbell,
@@ -30,7 +31,8 @@ export function Sidebar({ role }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
-    const { data: conversations = [] } = useConversations();
+    const queryClient = useQueryClient();
+    const conversations = queryClient.getQueryData<ConversationSummary[]>(QK.conversations) ?? [];
     const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
 
     async function handleLogout() {

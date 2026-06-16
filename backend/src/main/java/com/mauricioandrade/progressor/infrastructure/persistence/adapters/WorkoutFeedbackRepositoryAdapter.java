@@ -6,8 +6,10 @@ import com.mauricioandrade.progressor.infrastructure.persistence.entities.Workou
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataWorkoutFeedbackRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,6 +42,12 @@ public class WorkoutFeedbackRepositoryAdapter implements WorkoutFeedbackReposito
   public List<WorkoutFeedback> findByTrainerId(UUID trainerId) {
     return repository.findByTrainerIdOrderByFeedbackDateDesc(trainerId).stream()
         .map(this::toDomain).toList();
+  }
+
+  @Override
+  public Map<UUID, WorkoutFeedback> findLatestByTrainerId(UUID trainerId) {
+    return repository.findLatestPerStudentByTrainerId(trainerId).stream()
+        .collect(Collectors.toMap(e -> e.getStudentId(), this::toDomain));
   }
 
   private WorkoutFeedbackEntity toEntity(WorkoutFeedback f) {

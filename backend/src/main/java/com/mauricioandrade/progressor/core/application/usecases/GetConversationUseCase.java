@@ -18,7 +18,7 @@ public class GetConversationUseCase {
     chatRepository.markAsRead(currentUserId, partnerId);
     return chatRepository.findConversation(currentUserId, partnerId, since).stream()
         .map(m -> new ChatMessageResponse(m.getId(), m.getSenderId(), m.getReceiverId(),
-            m.getContent(), m.getImageData() != null, m.getSentAt(), m.getReadAt()))
+            m.getContent(), m.isHasImage(), m.getSentAt(), m.getReadAt()))
         .toList();
   }
 }

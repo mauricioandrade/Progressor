@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class GetProfessionalDashboardUseCase {
 
@@ -42,9 +41,7 @@ public class GetProfessionalDashboardUseCase {
     Map<UUID, LocalDate> lastCheckIns = checkInRepository.findLastDatesByStudentIds(studentIds);
     Map<UUID, Long> checkInCounts = checkInRepository.findCountsByStudentIdsSince(studentIds, since7Days);
 
-    Map<UUID, WorkoutFeedback> latestFeedbackByStudent = feedbackRepository
-        .findByTrainerId(trainerId).stream()
-        .collect(Collectors.toMap(WorkoutFeedback::getStudentId, f -> f, (a, b) -> a));
+    Map<UUID, WorkoutFeedback> latestFeedbackByStudent = feedbackRepository.findLatestByTrainerId(trainerId);
 
     return students.stream().map(s -> {
       WorkoutFeedback fb = latestFeedbackByStudent.get(s.getId());
@@ -68,18 +65,17 @@ public class GetProfessionalDashboardUseCase {
     if (students.isEmpty()) return List.of();
 
     List<UUID> studentIds = students.stream().map(Student::getId).toList();
-    Map<UUID, LocalDate> lastFoodLogs = consumptionRepository.findLastLogDatesByStudentIds(studentIds);
     LocalDate today = LocalDate.now();
 
+    Map<UUID, LocalDate> lastFoodLogs = consumptionRepository.findLastLogDatesByStudentIds(studentIds);
+    Map<UUID, Integer> itemCounts = mealPlanRepository.findLatestItemCountsByStudentIds(studentIds);
+    Map<UUID, Integer> consumedCounts = consumptionRepository.findConsumedCountsByStudentIds(studentIds, today);
+
     return students.stream().map(s -> {
-      int totalItems = mealPlanRepository.findByStudentId(s.getId())
-          .map(plan -> plan.getItems().size())
-          .orElse(0);
-      Integer adherencePct = null;
-      if (totalItems > 0) {
-        int consumed = consumptionRepository.findConsumedItemIds(s.getId(), today).size();
-        adherencePct = (consumed * 100) / totalItems;
-      }
+      int totalItems = itemCounts.getOrDefault(s.getId(), 0);
+      Integer adherencePct = totalItems > 0
+          ? (consumedCounts.getOrDefault(s.getId(), 0) * 100) / totalItems
+          : null;
       return new ProfessionalDashboardStudentSummary(
           s.getId(),
           s.getFirstName() + " " + s.getLastName(),

@@ -26,4 +26,6 @@ public interface MealConsumptionLogRepository {
   void deleteExtra(UUID logId);
 
   Map<UUID, LocalDate> findLastLogDatesByStudentIds(Collection<UUID> studentIds);
+
+  Map<UUID, Integer> findConsumedCountsByStudentIds(Collection<UUID> studentIds, LocalDate date);
 }

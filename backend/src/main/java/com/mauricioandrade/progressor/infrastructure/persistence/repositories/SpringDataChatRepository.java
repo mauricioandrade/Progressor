@@ -12,14 +12,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface SpringDataChatRepository extends JpaRepository<ChatMessageEntity, UUID> {
 
-  @Query("""
-      SELECT m FROM ChatMessageEntity m
-      WHERE ((m.senderId = :userA AND m.receiverId = :userB)
-          OR (m.senderId = :userB AND m.receiverId = :userA))
-        AND m.sentAt >= :since
-      ORDER BY m.sentAt ASC
-      """)
-  List<ChatMessageEntity> findConversation(
+  @Query(value = """
+      SELECT id, sender_id, receiver_id, content,
+             (image_data IS NOT NULL) AS has_image,
+             sent_at, read_at
+      FROM chat_messages
+      WHERE ((sender_id = :userA AND receiver_id = :userB)
+          OR (sender_id = :userB AND receiver_id = :userA))
+        AND sent_at >= :since
+      ORDER BY sent_at ASC
+      """, nativeQuery = true)
+  List<Object[]> findConversation(
       @Param("userA") UUID userA,
       @Param("userB") UUID userB,
       @Param("since") Instant since);

@@ -6,6 +6,8 @@ import com.mauricioandrade.progressor.core.domain.chat.ConversationSummary;
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.ChatMessageEntity;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataChatRepository;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,7 +31,15 @@ public class ChatRepositoryAdapter implements ChatRepository {
   public List<ChatMessage> findConversation(UUID userA, UUID userB, Instant since) {
     Instant from = since != null ? since : Instant.EPOCH;
     return repository.findConversation(userA, userB, from).stream()
-        .map(this::toDomain)
+        .map(row -> new ChatMessage(
+            (UUID) row[0],
+            (UUID) row[1],
+            (UUID) row[2],
+            (String) row[3],
+            Boolean.TRUE.equals(row[4]),
+            toInstant(row[5]),
+            row[6] != null ? toInstant(row[6]) : null
+        ))
         .toList();
   }
 
@@ -40,7 +50,7 @@ public class ChatRepositoryAdapter implements ChatRepository {
             (UUID) row[0],
             (String) row[1],
             (String) row[2],
-            row[3] != null ? ((java.sql.Timestamp) row[3]).toInstant() : null,
+            row[3] != null ? toInstant(row[3]) : null,
             ((Number) row[4]).intValue()
         ))
         .toList();
@@ -59,6 +69,12 @@ public class ChatRepositoryAdapter implements ChatRepository {
   @Override
   public Optional<ChatMessage> findById(UUID id) {
     return repository.findById(id).map(this::toDomain);
+  }
+
+  private static Instant toInstant(Object val) {
+    if (val instanceof java.sql.Timestamp ts) return ts.toInstant();
+    if (val instanceof LocalDateTime ldt) return ldt.toInstant(ZoneOffset.UTC);
+    throw new IllegalArgumentException("Unexpected timestamp type: " + val.getClass());
   }
 
   private ChatMessageEntity toEntity(ChatMessage m) {

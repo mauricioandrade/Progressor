@@ -7,6 +7,7 @@ import com.mauricioandrade.progressor.core.application.usecases.GetConversationU
 import com.mauricioandrade.progressor.core.application.usecases.GetConversationsUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.SendMessageUseCase;
 import com.mauricioandrade.progressor.core.application.ports.ChatRepository;
+import com.mauricioandrade.progressor.infrastructure.security.ImageValidator;
 import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
 import java.time.Instant;
 import java.util.List;
@@ -32,15 +33,18 @@ public class ChatController {
   private final GetConversationUseCase getConversationUseCase;
   private final GetConversationsUseCase getConversationsUseCase;
   private final ChatRepository chatRepository;
+  private final ImageValidator imageValidator;
 
   public ChatController(SendMessageUseCase sendMessageUseCase,
       GetConversationUseCase getConversationUseCase,
       GetConversationsUseCase getConversationsUseCase,
-      ChatRepository chatRepository) {
+      ChatRepository chatRepository,
+      ImageValidator imageValidator) {
     this.sendMessageUseCase = sendMessageUseCase;
     this.getConversationUseCase = getConversationUseCase;
     this.getConversationsUseCase = getConversationsUseCase;
     this.chatRepository = chatRepository;
+    this.imageValidator = imageValidator;
   }
 
   @PostMapping(value = "/messages", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -49,7 +53,7 @@ public class ChatController {
       @RequestParam(value = "content", required = false) String content,
       @RequestParam(value = "image", required = false) MultipartFile image,
       @AuthenticationPrincipal UserPrincipal currentUser) throws Exception {
-    byte[] imageData = image != null && !image.isEmpty() ? image.getBytes() : null;
+    byte[] imageData = image != null && !image.isEmpty() ? imageValidator.validateAndRead(image) : null;
     SendMessageRequest request = new SendMessageRequest(receiverId, content, imageData);
     return ResponseEntity.ok(
         sendMessageUseCase.execute(currentUser.getId(), currentUser.getRole(), request));

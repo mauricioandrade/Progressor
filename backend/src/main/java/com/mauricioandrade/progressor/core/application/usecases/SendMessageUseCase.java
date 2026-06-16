@@ -30,11 +30,20 @@ public class SendMessageUseCase {
 
   public ChatMessageResponse execute(UUID senderId, String senderRole, SendMessageRequest request) {
     validateAuthorization(senderId, senderRole, request.receiverId());
+    String content = request.content() != null && !request.content().isBlank()
+        ? request.content().strip() : null;
+    if (content == null && request.imageData() == null) {
+      throw new IllegalArgumentException("Conteúdo ou imagem obrigatório");
+    }
     ChatMessage message = new ChatMessage(UUID.randomUUID(), senderId, request.receiverId(),
-        request.content(), request.imageData(), Instant.now(), null);
+        content, request.imageData(), Instant.now(), null);
     ChatMessage saved = chatRepository.save(message);
-    String pushBody = request.content() != null ? request.content() : "Imagem";
-    pushNotificationPort.sendToStudent(request.receiverId(), "Nova mensagem", pushBody);
+    String pushBody = content != null ? content : "Imagem";
+    try {
+      pushNotificationPort.sendToStudent(request.receiverId(), "Nova mensagem", pushBody);
+    } catch (Exception ignored) {
+      // push failure must not roll back the saved message
+    }
     return toResponse(saved);
   }
 
@@ -48,8 +57,14 @@ public class SendMessageUseCase {
         throw new AccessDeniedException("Você só pode enviar mensagens para seu trainer ou nutricionista");
       }
     } else {
-      ProfessionalRole role = "PERSONALTRAINER".equals(senderRole)
-          ? ProfessionalRole.COACH : ProfessionalRole.NUTRI;
+      ProfessionalRole role;
+      if ("PERSONALTRAINER".equals(senderRole)) {
+        role = ProfessionalRole.COACH;
+      } else if ("NUTRITIONIST".equals(senderRole)) {
+        role = ProfessionalRole.NUTRI;
+      } else {
+        throw new AccessDeniedException("Role desconhecida: " + senderRole);
+      }
       if (!connectionRepo.existsAcceptedConnection(senderId, receiverId, role)) {
         throw new AccessDeniedException("Você só pode enviar mensagens para seus alunos");
       }
@@ -58,6 +73,6 @@ public class SendMessageUseCase {
 
   private ChatMessageResponse toResponse(ChatMessage m) {
     return new ChatMessageResponse(m.getId(), m.getSenderId(), m.getReceiverId(),
-        m.getContent(), m.getImageData() != null, m.getSentAt(), m.getReadAt());
+        m.getContent(), m.isHasImage(), m.getSentAt(), m.getReadAt());
   }
 }

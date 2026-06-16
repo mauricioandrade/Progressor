@@ -9,9 +9,12 @@ import com.mauricioandrade.progressor.infrastructure.persistence.repositories.Sp
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -91,6 +94,16 @@ public class MealPlanRepositoryAdapter implements MealPlanRepository {
     return springDataRepository.findAllByStudentIdOrderByCreatedAtDesc(studentId).stream()
         .map(this::toDomain)
         .toList();
+  }
+
+  @Override
+  public Map<UUID, Integer> findLatestItemCountsByStudentIds(Collection<UUID> studentIds) {
+    if (studentIds.isEmpty()) return Map.of();
+    return springDataRepository.findLatestItemCountsByStudentIds(studentIds).stream()
+        .collect(Collectors.toMap(
+            row -> (UUID) row[0],
+            row -> ((Number) row[1]).intValue()
+        ));
   }
 
   private MealPlan toDomain(MealPlanEntity e) {

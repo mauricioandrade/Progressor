@@ -1,9 +1,7 @@
 package com.mauricioandrade.progressor.infrastructure.persistence.entities;
 
-import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -25,7 +23,6 @@ public class ChatMessageEntity {
   @Column(columnDefinition = "TEXT")
   private String content;
 
-  @Basic(fetch = FetchType.LAZY)
   @Column(name = "image_data", columnDefinition = "bytea")
   private byte[] imageData;
 
