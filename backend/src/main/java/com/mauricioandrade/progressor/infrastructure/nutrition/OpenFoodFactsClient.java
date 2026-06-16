@@ -6,9 +6,11 @@ import com.mauricioandrade.progressor.core.application.dto.FoodItemResponse;
 import com.mauricioandrade.progressor.core.application.ports.FoodSearchPort;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
+import org.springframework.cache.annotation.Cacheable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -57,6 +59,7 @@ public class OpenFoodFactsClient implements FoodSearchPort {
   }
 
   @Override
+  @Cacheable(value = "food-search", key = "#query.toLowerCase().trim()")
   public List<FoodItemResponse> search(String query) {
     log.info("[OpenFoodFacts] Searching: '{}'", query);
 
@@ -98,6 +101,67 @@ public class OpenFoodFactsClient implements FoodSearchPort {
     return parseResponse(body);
   }
 
+  @Override
+  @Cacheable(value = "food-barcode", key = "#barcode")
+  public Optional<FoodItemResponse> lookupByBarcode(String barcode) {
+    log.info("[OpenFoodFacts] Barcode lookup: '{}'", barcode);
+
+    URI uri = UriComponentsBuilder.newInstance()
+        .scheme("https")
+        .host("world.openfoodfacts.org")
+        .path("/api/v3/product/{barcode}.json")
+        .buildAndExpand(barcode)
+        .encode()
+        .toUri();
+
+    String body;
+    try {
+      body = restClient.get()
+          .uri(uri)
+          .header("User-Agent", "ProgressorApp/1.0 (github.com/mauricioandrade/progressor)")
+          .retrieve()
+          .body(String.class);
+    } catch (RestClientException e) {
+      log.error("[OpenFoodFacts] Barcode lookup failed — {}", e.getMessage(), e);
+      throw new RuntimeException("Open Food Facts barcode lookup failed: " + e.getMessage(), e);
+    }
+
+    if (body == null || body.isBlank()) return Optional.empty();
+
+    try {
+      JsonNode root = objectMapper.readTree(body);
+      if (!"success".equals(root.path("status").asText())) return Optional.empty();
+      JsonNode product = root.path("product");
+      return Optional.ofNullable(parseProduct(product));
+    } catch (Exception e) {
+      log.error("[OpenFoodFacts] Barcode parse error: {}", e.getMessage(), e);
+      return Optional.empty();
+    }
+  }
+
+  private FoodItemResponse parseProduct(JsonNode product) {
+    String name = product.path("product_name_pt").asText("").trim();
+    if (name.isEmpty()) name = product.path("product_name").asText("").trim();
+    if (name.isEmpty()) return null;
+
+    String id = product.path("id").asText("");
+    String rawBrands = product.path("brands").asText("").trim();
+    String brandName = rawBrands.isEmpty() ? null : rawBrands.split(",")[0].trim();
+    if (brandName != null && brandName.isEmpty()) brandName = null;
+
+    JsonNode nutriments = product.path("nutriments");
+    double calories = nutriments.path("energy-kcal_100g").asDouble(0.0);
+    double protein  = nutriments.path("proteins_100g").asDouble(0.0);
+    double carbs    = nutriments.path("carbohydrates_100g").asDouble(0.0);
+    double fat      = nutriments.path("fat_100g").asDouble(0.0);
+
+    String description = String.format(
+        "Por 100g — Cal: %.0fkcal | P: %.1fg | C: %.1fg | G: %.1fg",
+        calories, protein, carbs, fat);
+
+    return new FoodItemResponse(id, name, brandName, calories, protein, carbs, fat, description);
+  }
+
   private List<FoodItemResponse> parseResponse(String json) {
     List<FoodItemResponse> results = new ArrayList<>();
     JsonNode root;
@@ -116,37 +180,8 @@ public class OpenFoodFactsClient implements FoodSearchPort {
     log.info("[OpenFoodFacts] Processing {} products", products.size());
 
     for (JsonNode product : products) {
-      // Name: prefer Portuguese localisation, fall back to generic product_name
-      String name = product.path("product_name_pt").asText("").trim();
-      if (name.isEmpty()) {
-        name = product.path("product_name").asText("").trim();
-      }
-      if (name.isEmpty()) continue;
-
-      String id = product.path("id").asText("");
-
-      // Brand: take the whole brands string (e.g. "Tio João" or "Nestlé, Nescau")
-      String rawBrands = product.path("brands").asText("").trim();
-      // Use only the first brand if comma-separated, to keep the UI badge concise
-      String brandName = rawBrands.isEmpty() ? null : rawBrands.split(",")[0].trim();
-      if (brandName != null && brandName.isEmpty()) brandName = null;
-
-      // Macros from nutriments — all per 100g; default to 0.0 if absent
-      JsonNode nutriments = product.path("nutriments");
-      double calories = nutriments.path("energy-kcal_100g").asDouble(0.0);
-      double protein  = nutriments.path("proteins_100g").asDouble(0.0);
-      double carbs    = nutriments.path("carbohydrates_100g").asDouble(0.0);
-      double fat      = nutriments.path("fat_100g").asDouble(0.0);
-
-      String description = String.format(
-          "Por 100g — Cal: %.0fkcal | P: %.1fg | C: %.1fg | G: %.1fg",
-          calories, protein, carbs, fat);
-
-      log.debug("[OpenFoodFacts] '{}' brand='{}' cal={} prot={} carbs={} fat={}",
-          name, brandName, calories, protein, carbs, fat);
-
-      results.add(new FoodItemResponse(id, name, brandName, calories, protein, carbs, fat,
-          description));
+      FoodItemResponse item = parseProduct(product);
+      if (item != null) results.add(item);
     }
 
     return results;

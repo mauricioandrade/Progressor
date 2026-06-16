@@ -14,10 +14,12 @@ import com.mauricioandrade.progressor.core.application.usecases.DeleteMealPlanUs
 import com.mauricioandrade.progressor.core.application.usecases.GetMealPlanHistoryUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetStudentMealPlanUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetWaterIntakeUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.LookupFoodByBarcodeUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.SearchFoodUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.SetWaterGoalUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.UpdateMealPlanUseCase;
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
+import com.mauricioandrade.progressor.infrastructure.security.OwnershipValidator;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -46,9 +48,11 @@ public class NutritionController {
   private final UpdateMealPlanUseCase updateMealPlanUseCase;
   private final GetMealPlanHistoryUseCase getMealPlanHistoryUseCase;
   private final SearchFoodUseCase searchFoodUseCase;
+  private final LookupFoodByBarcodeUseCase lookupFoodByBarcodeUseCase;
   private final GetWaterIntakeUseCase getWaterIntakeUseCase;
   private final AddWaterIntakeUseCase addWaterIntakeUseCase;
   private final SetWaterGoalUseCase setWaterGoalUseCase;
+  private final OwnershipValidator ownershipValidator;
 
   public NutritionController(CreateMealPlanUseCase createMealPlanUseCase,
       GetStudentMealPlanUseCase getStudentMealPlanUseCase,
@@ -56,24 +60,29 @@ public class NutritionController {
       UpdateMealPlanUseCase updateMealPlanUseCase,
       GetMealPlanHistoryUseCase getMealPlanHistoryUseCase,
       SearchFoodUseCase searchFoodUseCase,
+      LookupFoodByBarcodeUseCase lookupFoodByBarcodeUseCase,
       GetWaterIntakeUseCase getWaterIntakeUseCase,
       AddWaterIntakeUseCase addWaterIntakeUseCase,
-      SetWaterGoalUseCase setWaterGoalUseCase) {
+      SetWaterGoalUseCase setWaterGoalUseCase,
+      OwnershipValidator ownershipValidator) {
     this.createMealPlanUseCase = createMealPlanUseCase;
     this.getStudentMealPlanUseCase = getStudentMealPlanUseCase;
     this.deleteMealPlanUseCase = deleteMealPlanUseCase;
     this.updateMealPlanUseCase = updateMealPlanUseCase;
     this.getMealPlanHistoryUseCase = getMealPlanHistoryUseCase;
     this.searchFoodUseCase = searchFoodUseCase;
+    this.lookupFoodByBarcodeUseCase = lookupFoodByBarcodeUseCase;
     this.getWaterIntakeUseCase = getWaterIntakeUseCase;
     this.addWaterIntakeUseCase = addWaterIntakeUseCase;
     this.setWaterGoalUseCase = setWaterGoalUseCase;
+    this.ownershipValidator = ownershipValidator;
   }
 
   @PostMapping("/meal-plans")
   public ResponseEntity<Map<String, UUID>> createMealPlan(
       @Valid @RequestBody CreateMealPlanRequest request,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertNutriOwnsPatient(currentUser.getId(), request.studentId());
     UUID id = createMealPlanUseCase.execute(request, currentUser.getId());
     return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", id));
   }
@@ -93,14 +102,18 @@ public class NutritionController {
 
   @GetMapping("/meal-plans/my")
   public ResponseEntity<MealPlanResponse> getMyMealPlan(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return getStudentMealPlanUseCase.execute(currentUser.getId())
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
   @GetMapping("/meal-plans/student/{studentId}")
-  public ResponseEntity<MealPlanResponse> getStudentMealPlan(@PathVariable UUID studentId) {
+  public ResponseEntity<MealPlanResponse> getStudentMealPlan(@PathVariable UUID studentId,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return getStudentMealPlanUseCase.execute(studentId)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
@@ -108,7 +121,11 @@ public class NutritionController {
 
   @GetMapping("/meal-plans/history/{studentId}")
   public ResponseEntity<List<MealPlanSummaryResponse>> getMealPlanHistory(
-      @PathVariable UUID studentId) {
+      @PathVariable UUID studentId,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return ResponseEntity.ok(getMealPlanHistoryUseCase.execute(studentId));
   }
 
@@ -117,35 +134,48 @@ public class NutritionController {
     return ResponseEntity.ok(searchFoodUseCase.execute(q));
   }
 
+  @GetMapping("/foods/barcode/{barcode}")
+  public ResponseEntity<FoodItemResponse> lookupByBarcode(@PathVariable String barcode) {
+    return lookupFoodByBarcodeUseCase.execute(barcode)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
+
   @GetMapping("/water")
   public ResponseEntity<WaterIntakeResponse> getWaterIntake(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getWaterIntakeUseCase.execute(currentUser.getId()));
   }
 
   @PatchMapping("/water/intake")
   public ResponseEntity<WaterIntakeResponse> addWaterIntake(
       @Valid @RequestBody UpdateWaterIntakeRequest request,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(addWaterIntakeUseCase.execute(currentUser.getId(), request.amount()));
   }
 
   @PatchMapping("/water/goal")
   public ResponseEntity<WaterIntakeResponse> setWaterGoal(
       @Valid @RequestBody SetWaterGoalRequest request,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(setWaterGoalUseCase.execute(currentUser.getId(), request.goal()));
   }
 
   @GetMapping("/water/student/{studentId}")
-  public ResponseEntity<WaterIntakeResponse> getStudentWaterIntake(@PathVariable UUID studentId) {
+  public ResponseEntity<WaterIntakeResponse> getStudentWaterIntake(@PathVariable UUID studentId,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return ResponseEntity.ok(getWaterIntakeUseCase.execute(studentId));
   }
 
   @PatchMapping("/water/goal/{studentId}")
   public ResponseEntity<WaterIntakeResponse> setWaterGoalForStudent(
       @PathVariable UUID studentId,
-      @Valid @RequestBody SetWaterGoalRequest request) {
+      @Valid @RequestBody SetWaterGoalRequest request,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertNutriOwnsPatient(currentUser.getId(), studentId);
     return ResponseEntity.ok(setWaterGoalUseCase.execute(studentId, request.goal()));
   }
 }

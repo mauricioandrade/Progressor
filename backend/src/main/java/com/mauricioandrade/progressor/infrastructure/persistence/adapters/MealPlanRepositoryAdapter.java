@@ -6,6 +6,7 @@ import com.mauricioandrade.progressor.core.domain.nutrition.MealPlan;
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.MealItemEntity;
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.MealPlanEntity;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataMealPlanRepository;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class MealPlanRepositoryAdapter implements MealPlanRepository {
   }
 
   @Override
+  @Transactional
   public void save(MealPlan mealPlan) {
     MealPlanEntity entity = springDataRepository.findById(mealPlan.getId())
         .orElseGet(MealPlanEntity::new);
@@ -56,11 +58,13 @@ public class MealPlanRepositoryAdapter implements MealPlanRepository {
   }
 
   @Override
+  @Transactional
   public Optional<MealPlan> findByStudentId(UUID studentId) {
     return springDataRepository.findTopByStudentIdOrderByCreatedAtDesc(studentId).map(this::toDomain);
   }
 
   @Override
+  @Transactional
   public Optional<MealPlan> findById(UUID id) {
     return springDataRepository.findById(id).map(this::toDomain);
   }
@@ -71,6 +75,7 @@ public class MealPlanRepositoryAdapter implements MealPlanRepository {
   }
 
   @Override
+  @Transactional
   public void updateMetadata(UUID id, String name, String goal, boolean cheatMeal) {
     springDataRepository.findById(id).ifPresent(entity -> {
       entity.setName(name);
@@ -81,6 +86,7 @@ public class MealPlanRepositoryAdapter implements MealPlanRepository {
   }
 
   @Override
+  @Transactional
   public List<MealPlan> findAllByStudentId(UUID studentId) {
     return springDataRepository.findAllByStudentIdOrderByCreatedAtDesc(studentId).stream()
         .map(this::toDomain)

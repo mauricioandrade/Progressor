@@ -27,7 +27,7 @@ public class MealPlanEntity {
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
-  @OneToMany(mappedBy = "mealPlan", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "mealPlan", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<MealItemEntity> items = new ArrayList<>();
 
   public MealPlanEntity() {}
