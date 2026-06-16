@@ -12,4 +12,6 @@ public interface WorkoutBlockRepository {
   Optional<WorkoutBlock> findById(UUID id);
 
   List<WorkoutBlock> findByWorkoutPlanId(UUID workoutPlanId);
+
+  List<WorkoutBlock> findByWorkoutPlanIds(List<UUID> planIds);
 }

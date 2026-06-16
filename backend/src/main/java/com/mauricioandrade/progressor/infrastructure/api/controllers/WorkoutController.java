@@ -15,7 +15,8 @@ import com.mauricioandrade.progressor.core.application.usecases.GetStudentWorkou
 import com.mauricioandrade.progressor.core.application.usecases.GetStudentWorkoutUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetTodayWorkoutUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.UpdateWorkoutExerciseUseCase;
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
+import com.mauricioandrade.progressor.infrastructure.security.OwnershipValidator;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -44,6 +45,7 @@ public class WorkoutController {
   private final CreateWorkoutBlockUseCase createWorkoutBlockUseCase;
   private final DeleteWorkoutExerciseUseCase deleteWorkoutExerciseUseCase;
   private final UpdateWorkoutExerciseUseCase updateWorkoutExerciseUseCase;
+  private final OwnershipValidator ownershipValidator;
 
   public WorkoutController(CreateWorkoutUseCase createWorkoutUseCase,
       GetStudentWorkoutUseCase getStudentWorkoutUseCase,
@@ -52,7 +54,8 @@ public class WorkoutController {
       GetStudentWorkoutPlansUseCase getStudentWorkoutPlansUseCase,
       CreateWorkoutBlockUseCase createWorkoutBlockUseCase,
       DeleteWorkoutExerciseUseCase deleteWorkoutExerciseUseCase,
-      UpdateWorkoutExerciseUseCase updateWorkoutExerciseUseCase) {
+      UpdateWorkoutExerciseUseCase updateWorkoutExerciseUseCase,
+      OwnershipValidator ownershipValidator) {
     this.createWorkoutUseCase = createWorkoutUseCase;
     this.getStudentWorkoutUseCase = getStudentWorkoutUseCase;
     this.getTodayWorkoutUseCase = getTodayWorkoutUseCase;
@@ -61,29 +64,36 @@ public class WorkoutController {
     this.createWorkoutBlockUseCase = createWorkoutBlockUseCase;
     this.deleteWorkoutExerciseUseCase = deleteWorkoutExerciseUseCase;
     this.updateWorkoutExerciseUseCase = updateWorkoutExerciseUseCase;
+    this.ownershipValidator = ownershipValidator;
   }
 
   @PostMapping
-  public ResponseEntity<Void> createWorkout(@Valid @RequestBody CreateWorkoutRequest request) {
+  public ResponseEntity<Void> createWorkout(@Valid @RequestBody CreateWorkoutRequest request,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertCoachOwnsStudent(currentUser.getId(), request.studentId());
     createWorkoutUseCase.execute(request);
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
   @GetMapping("/student/{studentId}")
   public ResponseEntity<List<WorkoutExerciseResponse>> getStudentWorkout(
-      @PathVariable UUID studentId) {
+      @PathVariable UUID studentId,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return ResponseEntity.ok(getStudentWorkoutUseCase.execute(studentId));
   }
 
   @GetMapping("/my")
   public ResponseEntity<List<WorkoutExerciseResponse>> getMyWorkout(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getStudentWorkoutUseCase.execute(currentUser.getId()));
   }
 
   @GetMapping("/today")
   public ResponseEntity<List<WorkoutExerciseResponse>> getTodayWorkout(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     String day = LocalDate.now().getDayOfWeek().name().substring(0, 3);
     return ResponseEntity.ok(getTodayWorkoutUseCase.execute(currentUser.getId(), day));
   }
@@ -93,32 +103,41 @@ public class WorkoutController {
   @PostMapping("/plans")
   public ResponseEntity<WorkoutPlanResponse> createPlan(
       @Valid @RequestBody CreateWorkoutPlanRequest request,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertCoachOwnsStudent(currentUser.getId(), request.studentId());
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(createWorkoutPlanUseCase.execute(request, currentUser.getId()));
   }
 
   @GetMapping("/plans/student/{studentId}")
   public ResponseEntity<List<WorkoutPlanResponse>> getPlansForStudent(
-      @PathVariable UUID studentId) {
+      @PathVariable UUID studentId,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return ResponseEntity.ok(getStudentWorkoutPlansUseCase.execute(studentId));
   }
 
   @GetMapping("/plans/my")
   public ResponseEntity<List<WorkoutPlanResponse>> getMyPlans(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getStudentWorkoutPlansUseCase.execute(currentUser.getId()));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteExercise(@PathVariable UUID id) {
+  public ResponseEntity<Void> deleteExercise(@PathVariable UUID id,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertCoachOwnsExercise(currentUser.getId(), id);
     deleteWorkoutExerciseUseCase.execute(id);
     return ResponseEntity.noContent().build();
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<WorkoutExerciseResponse> updateExercise(@PathVariable UUID id,
-      @Valid @RequestBody UpdateWorkoutExerciseRequest request) {
+      @Valid @RequestBody UpdateWorkoutExerciseRequest request,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertCoachOwnsExercise(currentUser.getId(), id);
     return ResponseEntity.ok(updateWorkoutExerciseUseCase.execute(id, request));
   }
 

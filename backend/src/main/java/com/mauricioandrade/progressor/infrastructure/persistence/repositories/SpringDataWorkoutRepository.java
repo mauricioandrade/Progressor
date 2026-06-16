@@ -16,4 +16,6 @@ public interface SpringDataWorkoutRepository extends JpaRepository<WorkoutExerci
       @Param("studentId") UUID studentId, @Param("day") String day);
 
   List<WorkoutExerciseEntity> findByBlockId(UUID blockId);
+
+  List<WorkoutExerciseEntity> findByBlockIdIn(List<UUID> blockIds);
 }

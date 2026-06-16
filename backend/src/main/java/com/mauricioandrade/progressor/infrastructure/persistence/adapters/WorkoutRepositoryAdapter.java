@@ -54,6 +54,13 @@ public class WorkoutRepositoryAdapter implements WorkoutRepository {
   }
 
   @Override
+  public List<WorkoutExercise> findByBlockIds(List<UUID> blockIds) {
+    if (blockIds.isEmpty()) return List.of();
+    return springDataRepository.findByBlockIdIn(blockIds).stream()
+        .map(WorkoutExerciseMapper::toDomain).toList();
+  }
+
+  @Override
   public WorkoutExercise update(UUID id, WorkoutExercise exercise) {
     var existing = springDataRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Exercise not found: " + id));

@@ -33,4 +33,11 @@ public class WorkoutBlockRepositoryAdapter implements WorkoutBlockRepository {
     return springDataRepository.findByWorkoutPlanIdOrderByPosition(workoutPlanId).stream()
         .map(WorkoutBlockMapper::toDomain).toList();
   }
+
+  @Override
+  public List<WorkoutBlock> findByWorkoutPlanIds(List<UUID> planIds) {
+    if (planIds.isEmpty()) return List.of();
+    return springDataRepository.findByWorkoutPlanIdInOrderByPosition(planIds).stream()
+        .map(WorkoutBlockMapper::toDomain).toList();
+  }
 }

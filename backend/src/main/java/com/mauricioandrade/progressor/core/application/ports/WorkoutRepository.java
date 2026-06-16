@@ -15,6 +15,8 @@ public interface WorkoutRepository {
 
   List<WorkoutExercise> findByBlockId(UUID blockId);
 
+  List<WorkoutExercise> findByBlockIds(List<UUID> blockIds);
+
   Optional<WorkoutExercise> findById(UUID id);
 
   void deleteById(UUID id);

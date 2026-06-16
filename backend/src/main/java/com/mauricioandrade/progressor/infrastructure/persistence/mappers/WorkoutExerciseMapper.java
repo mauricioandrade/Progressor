@@ -56,6 +56,7 @@ public class WorkoutExerciseMapper {
     if (entity.getBlockId() != null) {
       exercise.assignToBlock(entity.getBlockId());
     }
+    exercise.assignStudent(entity.getStudentId());
     return exercise;
   }
 }

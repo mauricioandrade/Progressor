@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface SpringDataWorkoutBlockRepository extends JpaRepository<WorkoutBlockEntity, UUID> {
 
   List<WorkoutBlockEntity> findByWorkoutPlanIdOrderByPosition(UUID workoutPlanId);
+
+  List<WorkoutBlockEntity> findByWorkoutPlanIdInOrderByPosition(List<UUID> workoutPlanIds);
 }

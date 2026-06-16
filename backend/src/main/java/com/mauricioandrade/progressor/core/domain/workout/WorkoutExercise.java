@@ -5,6 +5,7 @@ import java.util.UUID;
 public class WorkoutExercise {
 
   private final UUID id;
+  private UUID studentId;
   private String name;
   private Integer sets;
   private Integer repetitions;
@@ -155,5 +156,13 @@ public class WorkoutExercise {
 
   public UUID getBlockId() {
     return blockId;
+  }
+
+  public UUID getStudentId() {
+    return studentId;
+  }
+
+  public void assignStudent(UUID studentId) {
+    this.studentId = studentId;
   }
 }
