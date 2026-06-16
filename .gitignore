@@ -4,3 +4,4 @@
 *.class
 *.jar
 .env
+*Zone.Identifier
