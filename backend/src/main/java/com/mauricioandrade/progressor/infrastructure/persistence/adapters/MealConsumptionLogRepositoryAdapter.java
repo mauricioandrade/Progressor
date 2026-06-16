@@ -6,7 +6,9 @@ import com.mauricioandrade.progressor.infrastructure.persistence.entities.MealCo
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataMealConsumptionLogRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -64,5 +66,15 @@ public class MealConsumptionLogRepositoryAdapter implements MealConsumptionLogRe
   @Transactional
   public void deleteExtra(UUID logId) {
     repository.deleteById(logId);
+  }
+
+  @Override
+  public Map<UUID, LocalDate> findLastLogDatesByStudentIds(Collection<UUID> studentIds) {
+    if (studentIds.isEmpty()) return Map.of();
+    return repository.findLastLogDatesByStudentIds(studentIds).stream()
+        .collect(Collectors.toMap(
+            row -> (UUID) row[0],
+            row -> (LocalDate) row[1]
+        ));
   }
 }

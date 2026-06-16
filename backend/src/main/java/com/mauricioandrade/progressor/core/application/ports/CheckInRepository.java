@@ -16,4 +16,6 @@ public interface CheckInRepository {
   Optional<LocalDate> findLastDateByStudentId(UUID studentId);
 
   Map<UUID, LocalDate> findLastDatesByStudentIds(Collection<UUID> studentIds);
+
+  Map<UUID, Long> findCountsByStudentIdsSince(Collection<UUID> studentIds, LocalDate since);
 }

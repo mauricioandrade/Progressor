@@ -2,7 +2,9 @@ package com.mauricioandrade.progressor.core.application.ports;
 
 import com.mauricioandrade.progressor.core.application.dto.ExtraFoodLogResponse;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,4 +24,6 @@ public interface MealConsumptionLogRepository {
   List<ExtraFoodLogResponse> findExtraItems(UUID studentId, LocalDate date);
 
   void deleteExtra(UUID logId);
+
+  Map<UUID, LocalDate> findLastLogDatesByStudentIds(Collection<UUID> studentIds);
 }

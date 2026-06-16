@@ -19,9 +19,9 @@ import {
     useMyWorkouts, useMyMeasurements, useMyPRs, useMyCheckIns,
     useMyMealPlan, useMyWater, useMyWeightGoal,
     useMyProfile, useMyAvatar,
-    usePendingConnections, useProfessionalCount,
+    usePendingConnections, useProfessionalDashboard,
 } from '../hooks/queries';
-import type { WaterIntake, ConnectionInvite } from '../types/api';
+import type { WaterIntake, ConnectionInvite, ProfessionalDashboardStudent } from '../types/api';
 
 
 
@@ -500,49 +500,141 @@ function StudentDashboard() {
     );
 }
 
-const PROFESSIONAL_CONFIG = {
-    PERSONALTRAINER: {
-        endpoint: '/users/students',
-        tileBg: 'bg-indigo-50/80 dark:bg-indigo-900/30',
-        iconColor: 'text-indigo-600 dark:text-indigo-400',
-        links: [
-            { to: '/students', labelKey: 'sidebar.students', iconColor: 'text-indigo-500', hoverBorder: 'hover:border-indigo-300 dark:hover:border-indigo-700', hoverIcon: 'group-hover:text-indigo-500', Icon: Users },
-            { to: '/workouts/new', labelKey: 'sidebar.create_workout', iconColor: 'text-blue-500', hoverBorder: 'hover:border-blue-300 dark:hover:border-blue-700', hoverIcon: 'group-hover:text-blue-500', Icon: Dumbbell },
-        ],
-    },
-    NUTRITIONIST: {
-        endpoint: '/users/my-students/nutritionist',
-        tileBg: 'bg-teal-50/80 dark:bg-teal-900/30',
-        iconColor: 'text-teal-600 dark:text-teal-400',
-        links: [
-            { to: '/diet/patients', labelKey: 'sidebar.my_patients', iconColor: 'text-teal-500', hoverBorder: 'hover:border-teal-300 dark:hover:border-teal-700', hoverIcon: 'group-hover:text-teal-500', Icon: Users },
-            { to: '/diet/builder', labelKey: 'sidebar.diet_builder', iconColor: 'text-blue-500', hoverBorder: 'hover:border-blue-300 dark:hover:border-blue-700', hoverIcon: 'group-hover:text-blue-500', Icon: UtensilsCrossed },
-        ],
-    },
-} as const;
+function StarRating({ rating }: { rating: number }) {
+    return (
+        <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className={`w-3 h-3 rounded-full ${i <= rating ? 'bg-yellow-400' : 'bg-gray-200 dark:bg-gray-700'}`} />
+            ))}
+        </div>
+    );
+}
+
+function daysSince(dateStr: string | null): string {
+    if (!dateStr) return 'nunca';
+    const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+    if (days === 0) return 'hoje';
+    if (days === 1) return 'ontem';
+    return `${days}d atrás`;
+}
+
+function TrainerStudentCard({ s }: { s: ProfessionalDashboardStudent }) {
+    return (
+        <Link to={`/professional/student/${s.studentId}`} className={`${tile} block hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors`}>
+            <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                    {s.studentName.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{s.studentName}</p>
+                    <div className="flex items-center gap-3 mt-1.5">
+                        <div className="flex items-center gap-1">
+                            <CalendarDays className="w-3 h-3 text-gray-400" />
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400">{daysSince(s.lastCheckIn)}</span>
+                        </div>
+                        {s.checkInsLast7Days != null && (
+                            <div className="flex items-center gap-1">
+                                <Activity className="w-3 h-3 text-purple-400" />
+                                <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium">{s.checkInsLast7Days}× em 7d</span>
+                            </div>
+                        )}
+                    </div>
+                    {s.lastFeedbackRating != null && (
+                        <div className="mt-2 space-y-0.5">
+                            <StarRating rating={s.lastFeedbackRating} />
+                            {s.lastFeedbackComment && (
+                                <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-1 italic">"{s.lastFeedbackComment}"</p>
+                            )}
+                        </div>
+                    )}
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0 mt-1" />
+            </div>
+        </Link>
+    );
+}
+
+function NutritionistStudentCard({ s }: { s: ProfessionalDashboardStudent }) {
+    const pct = s.todayAdherencePct ?? 0;
+    const adherenceColor = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-400' : 'bg-red-400';
+
+    return (
+        <Link to={`/professional/student/${s.studentId}`} className={`${tile} block hover:border-teal-300 dark:hover:border-teal-700 transition-colors`}>
+            <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                    {s.studentName.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{s.studentName}</p>
+                    <div className="flex items-center gap-3 mt-1.5">
+                        <div className="flex items-center gap-1">
+                            <UtensilsCrossed className="w-3 h-3 text-gray-400" />
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400">{daysSince(s.lastFoodLogDate)}</span>
+                        </div>
+                        {s.todayAdherencePct != null && (
+                            <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300">{pct}% hoje</span>
+                        )}
+                    </div>
+                    {s.todayAdherencePct != null && (
+                        <div className="mt-2 h-1.5 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full transition-all duration-500 ${adherenceColor}`} style={{ width: `${pct}%` }} />
+                        </div>
+                    )}
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0 mt-1" />
+            </div>
+        </Link>
+    );
+}
 
 function ProfessionalDashboard({ role }: { role: 'PERSONALTRAINER' | 'NUTRITIONIST' }) {
     const { t } = useTranslation();
-    const config = PROFESSIONAL_CONFIG[role];
-    const { data: count = 0, isPending: isLoading } = useProfessionalCount(config.endpoint);
+    const { data: students = [], isPending: isLoading } = useProfessionalDashboard();
 
     if (isLoading) return <DashboardSkeleton />;
 
+    const quickLinks = role === 'PERSONALTRAINER'
+        ? [
+            { to: '/students', labelKey: 'sidebar.students', iconColor: 'text-indigo-500', hoverBorder: 'hover:border-indigo-300 dark:hover:border-indigo-700', hoverIcon: 'group-hover:text-indigo-500', Icon: Users },
+            { to: '/workouts/new', labelKey: 'sidebar.create_workout', iconColor: 'text-blue-500', hoverBorder: 'hover:border-blue-300 dark:hover:border-blue-700', hoverIcon: 'group-hover:text-blue-500', Icon: Dumbbell },
+        ]
+        : [
+            { to: '/diet/patients', labelKey: 'sidebar.my_patients', iconColor: 'text-teal-500', hoverBorder: 'hover:border-teal-300 dark:hover:border-teal-700', hoverIcon: 'group-hover:text-teal-500', Icon: Users },
+            { to: '/diet/builder', labelKey: 'sidebar.diet_builder', iconColor: 'text-blue-500', hoverBorder: 'hover:border-blue-300 dark:hover:border-blue-700', hoverIcon: 'group-hover:text-blue-500', Icon: UtensilsCrossed },
+        ];
+
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className={`${tile} flex items-center gap-4`}>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${config.tileBg}`}>
-                        <Users className={`w-5 h-5 ${config.iconColor}`} />
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{t('dashboard.student_count')}</p>
-                        <p className="text-xl font-bold text-gray-800 dark:text-gray-100">{count}</p>
-                    </div>
+            {/* Summary stat */}
+            <div className={`${tile} flex items-center gap-4`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${role === 'PERSONALTRAINER' ? 'bg-indigo-50/80 dark:bg-indigo-900/30' : 'bg-teal-50/80 dark:bg-teal-900/30'}`}>
+                    <Users className={`w-5 h-5 ${role === 'PERSONALTRAINER' ? 'text-indigo-600 dark:text-indigo-400' : 'text-teal-600 dark:text-teal-400'}`} />
+                </div>
+                <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{t('dashboard.student_count')}</p>
+                    <p className="text-xl font-bold text-gray-800 dark:text-gray-100">{students.length}</p>
                 </div>
             </div>
+
+            {/* Student cards */}
+            {students.length > 0 && (
+                <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2 px-1">
+                        {role === 'PERSONALTRAINER' ? 'Alunos' : 'Pacientes'}
+                    </p>
+                    <div className="space-y-2">
+                        {students.map(s =>
+                            role === 'PERSONALTRAINER'
+                                ? <TrainerStudentCard key={s.studentId} s={s} />
+                                : <NutritionistStudentCard key={s.studentId} s={s} />
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Quick action links */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {config.links.map(({ to, labelKey, iconColor, hoverBorder, hoverIcon, Icon }) => (
+                {quickLinks.map(({ to, labelKey, iconColor, hoverBorder, hoverIcon, Icon }) => (
                     <Link key={to} to={to} className={`${tile} flex items-center justify-between group ${hoverBorder} !p-4`}>
                         <div className="flex items-center gap-3">
                             <Icon className={`w-5 h-5 ${iconColor}`} />

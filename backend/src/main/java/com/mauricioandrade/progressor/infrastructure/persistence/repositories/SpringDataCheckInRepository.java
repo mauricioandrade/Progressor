@@ -20,4 +20,7 @@ public interface SpringDataCheckInRepository extends JpaRepository<WorkoutCheckI
 
   @Query("SELECT c.studentId, MAX(c.date) FROM WorkoutCheckInEntity c WHERE c.studentId IN :studentIds GROUP BY c.studentId")
   List<Object[]> findLastDatesByStudentIds(@Param("studentIds") Collection<UUID> studentIds);
+
+  @Query("SELECT c.studentId, COUNT(c) FROM WorkoutCheckInEntity c WHERE c.studentId IN :studentIds AND c.date >= :since GROUP BY c.studentId")
+  List<Object[]> findCountsByStudentIdsSince(@Param("studentIds") Collection<UUID> studentIds, @Param("since") LocalDate since);
 }

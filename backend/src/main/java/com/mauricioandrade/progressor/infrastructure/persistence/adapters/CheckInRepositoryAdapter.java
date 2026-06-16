@@ -53,4 +53,14 @@ public class CheckInRepositoryAdapter implements CheckInRepository {
             row -> (LocalDate) row[1]
         ));
   }
+
+  @Override
+  public Map<UUID, Long> findCountsByStudentIdsSince(Collection<UUID> studentIds, LocalDate since) {
+    if (studentIds.isEmpty()) return Map.of();
+    return springDataRepository.findCountsByStudentIdsSince(studentIds, since).stream()
+        .collect(java.util.stream.Collectors.toMap(
+            row -> (UUID) row[0],
+            row -> (Long) row[1]
+        ));
+  }
 }

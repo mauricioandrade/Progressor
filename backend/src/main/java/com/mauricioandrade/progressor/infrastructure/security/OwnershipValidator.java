@@ -3,7 +3,7 @@ package com.mauricioandrade.progressor.infrastructure.security;
 import com.mauricioandrade.progressor.core.application.ports.ConnectionRequestRepository;
 import com.mauricioandrade.progressor.core.application.ports.WorkoutRepository;
 import com.mauricioandrade.progressor.core.domain.connection.ProfessionalRole;
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
 import java.util.UUID;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
@@ -57,8 +57,8 @@ public class OwnershipValidator {
   /**
    * For endpoints accessible by students (own data only) and professionals (their students).
    */
-  public void assertCanAccessStudentData(UserEntity currentUser, UUID studentId) {
-    String role = currentUser.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+  public void assertCanAccessStudentData(UserPrincipal currentUser, UUID studentId) {
+    String role = currentUser.getRole();
     if ("STUDENT".equals(role)) {
       if (!currentUser.getId().equals(studentId)) {
         throw new AccessDeniedException("Acesso negado a este estudante");

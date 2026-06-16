@@ -2,6 +2,7 @@ package com.mauricioandrade.progressor.infrastructure.persistence.repositories;
 
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.MealConsumptionLogEntity;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -26,4 +27,7 @@ public interface SpringDataMealConsumptionLogRepository
 
   @Query("SELECT DISTINCT l.studentId FROM MealConsumptionLogEntity l WHERE l.logDate >= :cutoff")
   Set<UUID> findStudentIdsWithLogsAfter(@Param("cutoff") LocalDate cutoff);
+
+  @Query("SELECT l.studentId, MAX(l.logDate) FROM MealConsumptionLogEntity l WHERE l.studentId IN :studentIds GROUP BY l.studentId")
+  List<Object[]> findLastLogDatesByStudentIds(@Param("studentIds") Collection<UUID> studentIds);
 }

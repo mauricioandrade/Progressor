@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mauricioandrade.progressor.core.application.dto.FoodItemResponse;
 import com.mauricioandrade.progressor.core.application.ports.FoodSearchPort;
+import java.util.Optional;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -64,6 +65,11 @@ public class UsdaClient implements FoodSearchPort {
         .followRedirects(HttpClient.Redirect.NORMAL)
         .build();
     log.info("[USDA] Client initialised — key length={}", apiKey.length());
+  }
+
+  @Override
+  public Optional<FoodItemResponse> lookupByBarcode(String barcode) {
+    return Optional.empty();
   }
 
   @Override
