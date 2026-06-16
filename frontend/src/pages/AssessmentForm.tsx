@@ -1,7 +1,8 @@
+import { glassCard } from '../styles/shared';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
 
 interface Student {
@@ -35,7 +36,7 @@ function emptyForm(): FormData {
 
 export function AssessmentForm() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const [students, setStudents] = useState<Student[]>([]);
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [form, setForm] = useState<FormData>(emptyForm());
@@ -97,7 +98,6 @@ export function AssessmentForm() {
 
     const inputClass = "w-full border border-white/30 dark:border-white/10 bg-white/50 dark:bg-white/5 text-gray-900 dark:text-gray-100 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-sm";
     const labelClass = "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1";
-    const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
 
     const circumferenceFields: { key: keyof FormData; label: string }[] = [
         { key: 'rightBicep', label: t('assessment_form.right_bicep') },

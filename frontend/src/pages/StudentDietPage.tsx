@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { glassCard, inputClass } from '../styles/shared';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { Download, Droplets, Loader2, Pencil, Check, X } from 'lucide-react';
+import { Download, Droplets, Loader2, Pencil, Check, X, CheckCircle2, Circle, Search, ScanBarcode, Trash2 } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
+import toast from 'react-hot-toast';
+import { BarcodeScannerModal } from '../components/BarcodeScannerModal';
 
 interface MealItem {
     id: string;
@@ -40,7 +43,6 @@ const MACRO_COLORS = {
     fat:     '#f59e0b',
 };
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
 
 const GOAL_COLORS: Record<string, string> = {
     BULKING:     'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
@@ -223,11 +225,20 @@ function HydrationCard({
 
 export function StudentDietPage() {
     const { t, i18n } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const [plan, setPlan] = useState<MealPlan | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isDownloading, setIsDownloading] = useState(false);
     const [water, setWater] = useState<WaterIntake>({ dailyWaterGoal: 0, currentWaterIntake: 0 });
+    const [consumedIds, setConsumedIds] = useState<Set<string>>(new Set());
+    const [togglingId, setTogglingId] = useState<string | null>(null);
+    const [extraItems, setExtraItems] = useState<{ id: string; foodName: string; caloriesKcal: number | null; proteinG: number | null; carbsG: number | null; fatG: number | null; quantity: number | null; baseUnit: string | null }[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<{ foodId: string; name: string; caloriesKcal: number; proteinG: number; carbsG: number; fatG: number; description: string }[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showScanner, setShowScanner] = useState(false);
+    const [addingFoodId, setAddingFoodId] = useState<string | null>(null);
+    const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         api.get('/nutrition/meal-plans/my')
@@ -237,6 +248,13 @@ export function StudentDietPage() {
 
         api.get('/nutrition/water')
             .then(r => setWater(r.data))
+            .catch(() => {});
+
+        api.get('/nutrition/consumption/today')
+            .then(r => {
+                setConsumedIds(new Set(r.data.consumedItemIds));
+                setExtraItems(r.data.extraItems ?? []);
+            })
             .catch(() => {});
     }, []);
 
@@ -250,6 +268,69 @@ export function StudentDietPage() {
     async function handleSetGoal(goal: number) {
         const r = await api.patch('/nutrition/water/goal', { goal });
         setWater(r.data);
+    }
+
+    function handleSearchChange(q: string) {
+        setSearchQuery(q);
+        setSearchResults([]);
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+        if (q.length < 2) return;
+        setIsSearching(true);
+        searchTimer.current = setTimeout(async () => {
+            try {
+                const r = await api.get(`/nutrition/foods/search?q=${encodeURIComponent(q)}`);
+                setSearchResults(r.data);
+            } catch {
+            } finally {
+                setIsSearching(false);
+            }
+        }, 400);
+    }
+
+    async function handleAddExtraFood(food: { name: string; caloriesKcal: number; proteinG: number; carbsG: number; fatG: number; description: string }) {
+        setAddingFoodId(food.name);
+        try {
+            const r = await api.post('/nutrition/consumption/extra', {
+                foodName: food.name,
+                caloriesKcal: food.caloriesKcal,
+                proteinG: food.proteinG,
+                carbsG: food.carbsG,
+                fatG: food.fatG,
+                quantity: null,
+                baseUnit: null,
+            });
+            setConsumedIds(new Set(r.data.consumedItemIds));
+            setExtraItems(r.data.extraItems ?? []);
+            setSearchQuery('');
+            setSearchResults([]);
+            toast.success(`${food.name} adicionado!`);
+        } catch {
+            toast.error('Erro ao adicionar alimento.');
+        } finally {
+            setAddingFoodId(null);
+        }
+    }
+
+    async function handleRemoveExtra(logId: string) {
+        try {
+            const r = await api.delete(`/nutrition/consumption/extra/${logId}`);
+            setConsumedIds(new Set(r.data.consumedItemIds));
+            setExtraItems(r.data.extraItems ?? []);
+        } catch {
+            toast.error('Erro ao remover.');
+        }
+    }
+
+    async function handleToggle(mealItemId: string) {
+        setTogglingId(mealItemId);
+        try {
+            const r = await api.post('/nutrition/consumption/toggle', { mealItemId });
+            setConsumedIds(new Set(r.data.consumedItemIds));
+        } catch {
+            toast.error('Erro ao registrar consumo.');
+        } finally {
+            setTogglingId(null);
+        }
     }
 
     async function handleDownloadDiet() {
@@ -313,6 +394,15 @@ export function StudentDietPage() {
     return (
         <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900">
             <Sidebar role={user.role} />
+            {showScanner && (
+                <BarcodeScannerModal
+                    onFound={food => {
+                        setShowScanner(false);
+                        handleAddExtraFood(food);
+                    }}
+                    onClose={() => setShowScanner(false)}
+                />
+            )}
             <div className="flex-1">
                 <header className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl border-b border-black/5 dark:border-white/10 p-5 sticky top-0 z-10">
                     <div className="flex items-center justify-between">
@@ -381,7 +471,25 @@ export function StudentDietPage() {
                                         <p>{t('nutrition.cheat_meal_banner_title')}</p>
                                     </div>
                                 ) : (
-                                    <MacroDonut protein={totalProtein} carbs={totalCarbs} fat={totalFat} calories={totalCalories} />
+                                    <>
+                                        <MacroDonut protein={totalProtein} carbs={totalCarbs} fat={totalFat} calories={totalCalories} />
+                                        {plan.items.length > 0 && (
+                                            <div className="mt-4 pt-4 border-t border-black/5 dark:border-white/5">
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">Aderência de hoje</span>
+                                                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                                        {consumedIds.size} / {plan.items.length} itens
+                                                    </span>
+                                                </div>
+                                                <div className="h-2 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                                        style={{ width: `${plan.items.length > 0 ? (consumedIds.size / plan.items.length) * 100 : 0}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
 
                                 <div className={`mt-4 pt-4 border-t border-black/5 dark:border-white/5 grid grid-cols-4 gap-2 text-center${plan.cheatMeal ? ' opacity-30 pointer-events-none select-none' : ''}`}>
@@ -426,25 +534,42 @@ export function StudentDietPage() {
                                         </div>
 
                                         <div className="divide-y divide-black/5 dark:divide-white/5">
-                                            {items.map(item => (
-                                                <div key={item.id} className="px-5 py-3 flex items-center justify-between gap-3">
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{item.name}</p>
-                                                        <p className="text-xs text-gray-400 mt-0.5">
-                                                            {item.quantity != null ? `${item.quantity}${item.baseUnit ?? 'g'} · ` : ''}
-                                                            <span className="text-rose-500">{item.proteinG.toFixed(1)}g P</span>
-                                                            {' · '}
-                                                            <span className="text-blue-500">{item.carbsG.toFixed(1)}g C</span>
-                                                            {' · '}
-                                                            <span className="text-amber-500">{item.fatG.toFixed(1)}g F</span>
-                                                        </p>
+                                            {items.map(item => {
+                                                const consumed = consumedIds.has(item.id);
+                                                const toggling = togglingId === item.id;
+                                                return (
+                                                    <div key={item.id} className={`px-5 py-3 flex items-center gap-3 transition-colors ${consumed ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : ''}`}>
+                                                        <button
+                                                            onClick={() => handleToggle(item.id)}
+                                                            disabled={toggling}
+                                                            className={`shrink-0 transition-all active:scale-90 ${toggling ? 'opacity-50' : ''}`}
+                                                            title={consumed ? 'Desmarcar' : 'Marcar como consumido'}
+                                                        >
+                                                            {consumed
+                                                                ? <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                                                                : <Circle className="w-5 h-5 text-gray-300 dark:text-gray-600 hover:text-emerald-400 transition-colors" />
+                                                            }
+                                                        </button>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className={`text-sm font-medium truncate transition-colors ${consumed ? 'text-emerald-700 dark:text-emerald-400 line-through decoration-emerald-400/50' : 'text-gray-800 dark:text-gray-100'}`}>
+                                                                {item.name}
+                                                            </p>
+                                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                                {item.quantity != null ? `${item.quantity}${item.baseUnit ?? 'g'} · ` : ''}
+                                                                <span className="text-rose-500">{item.proteinG.toFixed(1)}g P</span>
+                                                                {' · '}
+                                                                <span className="text-blue-500">{item.carbsG.toFixed(1)}g C</span>
+                                                                {' · '}
+                                                                <span className="text-amber-500">{item.fatG.toFixed(1)}g F</span>
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right shrink-0">
+                                                            <p className="text-sm font-bold text-emerald-500">{item.caloriesKcal.toFixed(0)}</p>
+                                                            <p className="text-[10px] text-gray-400">kcal</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-right shrink-0">
-                                                        <p className="text-sm font-bold text-emerald-500">{item.caloriesKcal.toFixed(0)}</p>
-                                                        <p className="text-[10px] text-gray-400">kcal</p>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
 
                                         <div className="px-5 py-3 bg-black/2 dark:bg-white/2 border-t border-black/5 dark:border-white/5 flex justify-between text-xs text-gray-500 dark:text-gray-400">
@@ -462,6 +587,96 @@ export function StudentDietPage() {
                                     </div>
                                 );
                             })}
+                            {/* Extra food log */}
+                            {plan && !plan.cheatMeal && (
+                                <div className={`${glassCard} p-5`}>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Search className="w-4 h-4 text-teal-400" />
+                                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">Alimentos extras</span>
+                                    </div>
+
+                                    {/* Search + scanner */}
+                                    <div className="relative flex gap-2 mb-3">
+                                        <input
+                                            type="text"
+                                            value={searchQuery}
+                                            onChange={e => handleSearchChange(e.target.value)}
+                                            placeholder="Buscar alimento..."
+                                            className={inputClass + ' flex-1'}
+                                        />
+                                        <button
+                                            onClick={() => setShowScanner(true)}
+                                            className="w-10 h-10 flex items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors active:scale-95 shrink-0"
+                                            title="Escanear código de barras"
+                                        >
+                                            <ScanBarcode className="w-4 h-4" />
+                                        </button>
+                                    </div>
+
+                                    {/* Search results dropdown */}
+                                    {(isSearching || searchResults.length > 0) && (
+                                        <div className="mb-3 rounded-2xl border border-black/5 dark:border-white/10 overflow-hidden">
+                                            {isSearching && (
+                                                <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400">
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    Buscando...
+                                                </div>
+                                            )}
+                                            {searchResults.slice(0, 5).map(food => (
+                                                <div key={food.foodId} className="flex items-center gap-3 px-4 py-3 border-b last:border-0 border-black/5 dark:border-white/5 hover:bg-black/2 dark:hover:bg-white/2 transition-colors">
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{food.name}</p>
+                                                        <p className="text-xs text-gray-400">
+                                                            <span className="text-emerald-500">{food.caloriesKcal.toFixed(0)} kcal</span>
+                                                            {' · '}
+                                                            <span className="text-rose-400">{food.proteinG.toFixed(1)}g P</span>
+                                                            {' · '}
+                                                            <span className="text-blue-400">{food.carbsG.toFixed(1)}g C</span>
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleAddExtraFood(food)}
+                                                        disabled={addingFoodId === food.name}
+                                                        className="w-7 h-7 flex items-center justify-center rounded-full bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 transition-colors active:scale-95 shrink-0"
+                                                    >
+                                                        {addingFoodId === food.name
+                                                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                            : <Check className="w-3.5 h-3.5" />
+                                                        }
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Extra items logged today */}
+                                    {extraItems.length > 0 ? (
+                                        <div className="space-y-1.5">
+                                            {extraItems.map(item => (
+                                                <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-teal-50/50 dark:bg-teal-900/10">
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{item.foodName}</p>
+                                                        {item.caloriesKcal != null && (
+                                                            <p className="text-xs text-gray-400">
+                                                                <span className="text-emerald-500">{item.caloriesKcal.toFixed(0)} kcal</span>
+                                                                {item.proteinG != null && <> · <span className="text-rose-400">{item.proteinG.toFixed(1)}g P</span></>}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleRemoveExtra(item.id)}
+                                                        className="w-7 h-7 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors active:scale-95 shrink-0"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-400 text-center py-2">Nenhum alimento extra registrado hoje.</p>
+                                    )}
+                                </div>
+                            )}
                         </>
                     )}
                 </main>

@@ -1,5 +1,7 @@
+import { glassCard, inputClass } from '../styles/shared';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { ListSkeleton, CardSkeleton } from '../components/ui/Skeleton';
 import { useTranslation } from 'react-i18next';
 import {
     ArrowLeft, Dumbbell, Apple, Droplets, Camera, Ruler,
@@ -7,7 +9,7 @@ import {
     Pencil, Trash2, ExternalLink, Play, Target, Check, X, History, Plus,
 } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -103,7 +105,6 @@ interface EditableItem {
     fatPerUnit: number;
 }
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
 
 function getEmbedUrl(url: string): string | null {
     const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
@@ -133,7 +134,7 @@ function formatDate(iso: string) {
 
 export function StudentDetailPage() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const { studentId } = useParams<{ studentId: string }>();
     const location = useLocation();
     const navigate = useNavigate();
@@ -171,6 +172,8 @@ export function StudentDetailPage() {
 
     const [mealPlanHistory, setMealPlanHistory] = useState<MealPlanSummary[]>([]);
     const [checkinHistory, setCheckinHistory] = useState<string[]>([]);
+    const [studentFeedbacks, setStudentFeedbacks] = useState<{ id: string; rating: number; comment: string | null; feedbackDate: string }[]>([]);
+    const [mealAdherence, setMealAdherence] = useState<{ date: string; totalItems: number; consumedItems: number }[]>([]);
     const [editMealPlanModal, setEditMealPlanModal] = useState<{ id: string; name: string; goal: string; cheatMeal: boolean } | null>(null);
     const [editMealPlanForm, setEditMealPlanForm] = useState<{ name: string; goal: string; cheatMeal: boolean; items: EditableItem[] }>({ name: '', goal: 'BULKING', cheatMeal: false, items: [] });
     const [isSavingMealPlan, setIsSavingMealPlan] = useState(false);
@@ -212,12 +215,16 @@ export function StudentDetailPage() {
                 const r = await api.get(`/progress-photos/student/${studentId}`);
                 setPhotos(r.data);
             } else if (tab === 'history') {
-                const [historyRes, checkinsRes] = await Promise.allSettled([
+                const [historyRes, checkinsRes, feedbacksRes, adherenceRes] = await Promise.allSettled([
                     api.get(`/nutrition/meal-plans/history/${studentId}`),
                     api.get(`/checkins/student/${studentId}`),
+                    api.get(`/workouts/feedback/student/${studentId}`),
+                    api.get(`/nutrition/consumption/student/${studentId}/adherence?days=7`),
                 ]);
                 if (historyRes.status === 'fulfilled') setMealPlanHistory(historyRes.value.data);
                 if (checkinsRes.status === 'fulfilled') setCheckinHistory(checkinsRes.value.data);
+                if (feedbacksRes.status === 'fulfilled') setStudentFeedbacks(feedbacksRes.value.data);
+                if (adherenceRes.status === 'fulfilled') setMealAdherence(adherenceRes.value.data);
             }
         } catch {
         } finally {
@@ -424,7 +431,7 @@ export function StudentDetailPage() {
     }
 
     async function handleDeleteMealPlan(id: string) {
-        if (!confirm(t('meal_plan.edit_title') + '?')) return;
+        if (!confirm(t('meal_plan.confirm_delete'))) return;
         setDeletingMealPlanId(id);
         try {
             await api.delete(`/nutrition/meal-plans/${id}`);
@@ -438,7 +445,7 @@ export function StudentDetailPage() {
     }
 
     async function handleDeleteExercise(id: string) {
-        if (!confirm(t('edit_exercise.title') + '?')) return;
+        if (!confirm(t('edit_exercise.confirm_delete'))) return;
         setDeletingExerciseId(id);
         try {
             await api.delete(`/workouts/${id}`);
@@ -524,8 +531,6 @@ export function StudentDetailPage() {
             return acc;
         }, {} as Record<string, MealItem[]>)
         : {};
-
-    const inputClass = 'w-full border border-black/10 dark:border-white/10 bg-white/50 dark:bg-white/5 text-gray-900 dark:text-gray-100 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
 
     return (
         <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900">
@@ -960,8 +965,9 @@ export function StudentDetailPage() {
 
                 <main className="p-4 md:p-6 max-w-2xl space-y-4 pb-24 md:pb-6">
                     {isLoading && (
-                        <div className="flex items-center justify-center py-16">
-                            <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                        <div className="space-y-4">
+                            <CardSkeleton />
+                            <ListSkeleton rows={5} />
                         </div>
                     )}
 
@@ -1061,16 +1067,16 @@ export function StudentDetailPage() {
                                                     <>
                                                         <button
                                                             onClick={() => openEditExerciseModal(ex)}
+                                                            aria-label={`${t('edit_exercise.title')} ${ex.name}`}
                                                             className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors active:scale-95"
-                                                            title="Edit exercise"
                                                         >
                                                             <Pencil className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteExercise(ex.id)}
                                                             disabled={deletingExerciseId === ex.id}
+                                                            aria-label={`${t('common.delete')} ${ex.name}`}
                                                             className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors active:scale-95"
-                                                            title="Delete exercise"
                                                         >
                                                             {deletingExerciseId === ex.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                                                         </button>
@@ -1177,6 +1183,7 @@ export function StudentDetailPage() {
                                                     <>
                                                         <button
                                                             onClick={() => openEditMealPlanModal({ id: mealPlan.id, name: mealPlan.name, goal: mealPlan.goal, cheatMeal: mealPlan.cheatMeal })}
+                                                            aria-label={`${t('meal_plan.edit_title')} ${mealPlan.name}`}
                                                             className="w-7 h-7 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 transition-colors active:scale-95"
                                                         >
                                                             <Pencil className="w-3 h-3" />
@@ -1184,6 +1191,7 @@ export function StudentDetailPage() {
                                                         <button
                                                             onClick={() => handleDeleteMealPlan(mealPlan.id)}
                                                             disabled={deletingMealPlanId === mealPlan.id}
+                                                            aria-label={`${t('common.delete')} ${mealPlan.name}`}
                                                             className="w-7 h-7 rounded-full bg-red-50 dark:bg-red-900/30 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors active:scale-95 disabled:opacity-50"
                                                         >
                                                             {deletingMealPlanId === mealPlan.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
@@ -1529,6 +1537,68 @@ export function StudentDetailPage() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Meal Adherence (last 7 days) */}
+                            {mealAdherence.some(d => d.totalItems > 0) && (
+                                <div className={`${glassCard} p-5`}>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <span className="text-base">🥗</span>
+                                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">Aderência alimentar (7 dias)</span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {mealAdherence.filter(d => d.totalItems > 0).map(d => {
+                                            const pct = Math.round((d.consumedItems / d.totalItems) * 100);
+                                            return (
+                                                <div key={d.date}>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                            {new Date(d.date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                                                        </span>
+                                                        <span className={`text-xs font-semibold ${pct >= 80 ? 'text-emerald-600 dark:text-emerald-400' : pct >= 50 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-500'}`}>
+                                                            {d.consumedItems}/{d.totalItems} · {pct}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="h-1.5 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all ${pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                                                            style={{ width: `${pct}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Workout Feedbacks */}
+                            {studentFeedbacks.length > 0 && (
+                                <div className={`${glassCard} p-5`}>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <span className="text-base">⭐</span>
+                                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">Feedbacks de treino</span>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {studentFeedbacks.slice(0, 10).map(fb => (
+                                            <div key={fb.id} className="flex items-start gap-3 p-3 rounded-2xl bg-black/5 dark:bg-white/5">
+                                                <div className="flex gap-0.5 shrink-0 mt-0.5">
+                                                    {[1,2,3,4,5].map(s => (
+                                                        <span key={s} className={`text-xs ${s <= fb.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}>★</span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                                                        {new Date(fb.feedbackDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                                    </p>
+                                                    {fb.comment && (
+                                                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 italic">"{fb.comment}"</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
                 </main>

@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
+import { glassCard } from '../styles/shared';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, Search, Send } from 'lucide-react';
+import { AlertCircle, Search, Send, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { ListSkeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
+import { useStudents } from '../hooks/queries';
 
 interface Student {
     id: string;
@@ -27,30 +31,18 @@ function isInactive(student: Student): boolean {
     return days === null || days >= 3;
 }
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
 const inputClass = 'flex-1 px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-2xl bg-white/60 dark:bg-white/5 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none text-sm backdrop-blur-sm';
 
 export function Students() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const navigate = useNavigate();
-    const [students, setStudents] = useState<Student[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { data: students = [], isPending: isLoading } = useStudents();
     const [searchEmail, setSearchEmail] = useState('');
     const [searchResult, setSearchResult] = useState<Student | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState('');
     const [assignSuccess, setAssignSuccess] = useState('');
-
-    function loadStudents() {
-        setIsLoading(true);
-        api.get('/users/students')
-            .then(r => setStudents(r.data))
-            .catch(() => {})
-            .finally(() => setIsLoading(false));
-    }
-
-    useEffect(() => { loadStudents(); }, []);
 
     if (!user) return null;
 
@@ -147,13 +139,15 @@ export function Students() {
                         )}
                     </div>
 
-                    <div className={glassCard + ' overflow-hidden'}>
+                    <div className={students.length > 0 ? glassCard + ' overflow-hidden' : ''}>
                         {isLoading ? (
-                            <div className="p-10 text-center text-gray-400">...</div>
+                            <ListSkeleton rows={4} />
                         ) : students.length === 0 ? (
-                            <div className="p-10 text-center text-gray-400 text-sm">
-                                {t('students_list.no_students')}
-                            </div>
+                            <EmptyState
+                                icon={Users}
+                                title={t('students_list.no_students')}
+                                description="Busque um aluno pelo e-mail acima e envie um convite."
+                            />
                         ) : (
                             <div className="divide-y divide-black/5 dark:divide-white/5">
                                 {students.map(student => {

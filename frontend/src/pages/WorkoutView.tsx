@@ -1,13 +1,19 @@
+import { glassCard, inputClass } from '../styles/shared';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, X, CheckCircle, Timer, Download, Loader2, LayoutGrid, List, Pencil, Trash2, ExternalLink, Eye } from 'lucide-react';
+import { Play, X, CheckCircle, Timer, Download, Loader2, LayoutGrid, List, Pencil, Trash2, ExternalLink, Eye, Dumbbell, Zap, History } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { useRestTimer } from '../contexts/RestTimerContext';
 import { api } from '../services/api';
 import { WorkoutSpreadsheetView } from '../components/WorkoutSpreadsheetView';
+import { ListSkeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
 import toast from 'react-hot-toast';
+import { QK, useQueryClient, useMyWorkouts, useExerciseStats } from '../hooks/queries';
+import { WorkoutFeedbackCard } from '../components/WorkoutFeedbackCard';
+import { GuidedWorkoutSession } from '../components/GuidedWorkoutSession';
 
 interface WorkoutExercise {
     id: string;
@@ -23,12 +29,13 @@ interface WorkoutExercise {
     scheduledDays?: string;
 }
 
-interface TodayExercise {
-    id: string;
-    name: string;
-    sets: number;
-    repetitions: number;
-    workoutLabel?: string;
+
+interface ExerciseStats {
+    exerciseId: string;
+    lastWeight: number | null;
+    lastReps: number | null;
+    prWeight: number | null;
+    prReps: number | null;
 }
 
 interface ExerciseLog {
@@ -57,15 +64,22 @@ function getYoutubeThumbnail(url: string): string | null {
     return null;
 }
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
-const inputClass = 'w-full border border-black/10 dark:border-white/10 bg-white/50 dark:bg-white/5 text-gray-900 dark:text-gray-100 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+const DAYS_MAP: Record<number, string> = { 0: 'SUN', 1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT' };
 
 export function WorkoutView() {
     const { t, i18n } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
+    if (!user) return null;
     const { start: startTimer } = useRestTimer();
-    const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const queryClient = useQueryClient();
+    const workoutsQuery = useMyWorkouts();
+    const exercises = (workoutsQuery.data ?? []) as WorkoutExercise[];
+    const isLoading = workoutsQuery.isPending;
+    const statsQuery = useExerciseStats(user.role === 'STUDENT');
+    const exerciseStats: Record<string, ExerciseStats> = {};
+    ((statsQuery.data ?? []) as ExerciseStats[]).forEach(s => { exerciseStats[s.exerciseId] = s; });
+
     const [modalUrl, setModalUrl] = useState<string | null>(null);
 
     const [logModal, setLogModal] = useState<WorkoutExercise | null>(null);
@@ -78,8 +92,24 @@ export function WorkoutView() {
     const [historyData, setHistoryData] = useState<Record<string, ExerciseLog[]>>({});
     const [showHistory, setShowHistory] = useState<Record<string, boolean>>({});
     const [isDownloading, setIsDownloading] = useState(false);
-    const [todayExercises, setTodayExercises] = useState<TodayExercise[]>([]);
+
+    const todayCode = DAYS_MAP[new Date().getDay()];
+    const todayExercises = exercises.filter((e: WorkoutExercise) => e.scheduledDays?.includes(todayCode));
     const [viewMode, setViewMode] = useState<'card' | 'spreadsheet'>('card');
+
+    const [todayFeedback, setTodayFeedback] = useState<{ id: string; rating: number; comment: string | null; feedbackDate: string } | null>(null);
+    const [guidedActive, setGuidedActive] = useState(false);
+    const [sessionHistory, setSessionHistory] = useState<{ id: string; sessionDate: string; exercises: number; sets: number; tonnageKg: number; prCount: number }[]>([]);
+
+    useEffect(() => {
+        if (user.role !== 'STUDENT') return;
+        api.get('/workouts/feedback/today')
+            .then(r => setTodayFeedback(r.data))
+            .catch(() => {});
+        api.get('/workouts/sessions/my')
+            .then(r => setSessionHistory(r.data))
+            .catch(() => {});
+    }, [user.role]);
 
     const [detailModal, setDetailModal] = useState<WorkoutExercise | null>(null);
 
@@ -88,25 +118,12 @@ export function WorkoutView() {
     const [editForm, setEditForm] = useState<Partial<WorkoutExercise> & { scheduledDaysArr?: string[] }>({});
     const [isSavingEdit, setIsSavingEdit] = useState(false);
 
-    function loadExercises() {
-        setIsLoading(true);
-        api.get('/workouts/my')
-            .then(r => setExercises(r.data))
-            .catch(() => {})
-            .finally(() => setIsLoading(false));
-    }
-
-    useEffect(() => {
-        loadExercises();
-        api.get('/workouts/today').then(r => setTodayExercises(r.data)).catch(() => {});
-    }, []);
-
     async function handleDeleteExercise(id: string) {
-        if (!confirm(t('edit_exercise.title') + '?')) return;
+        if (!confirm(t('edit_exercise.confirm_delete'))) return;
         setDeletingId(id);
         try {
             await api.delete(`/workouts/${id}`);
-            setExercises(prev => prev.filter(e => e.id !== id));
+            queryClient.invalidateQueries({ queryKey: QK.myWorkouts });
             toast.success(t('toast.exercise_deleted'));
         } catch {
             toast.error(t('toast.error_generic'));
@@ -133,7 +150,7 @@ export function WorkoutView() {
         setIsSavingEdit(true);
         try {
             const scheduledDays = editForm.scheduledDaysArr ?? [];
-            const { data } = await api.put(`/workouts/${editModal.id}`, {
+            const { data: _updated } = await api.put(`/workouts/${editModal.id}`, {
                 name: editForm.name,
                 sets: Number(editForm.sets),
                 repetitions: Number(editForm.repetitions),
@@ -144,7 +161,7 @@ export function WorkoutView() {
                 workoutLabel: editForm.workoutLabel ?? null,
                 scheduledDays: scheduledDays.length > 0 ? scheduledDays : null,
             });
-            setExercises(prev => prev.map(e => e.id === editModal.id ? data : e));
+            queryClient.invalidateQueries({ queryKey: QK.myWorkouts });
             setEditModal(null);
             toast.success(t('toast.exercise_updated'));
         } catch {
@@ -484,6 +501,19 @@ export function WorkoutView() {
                 </div>
             )}
 
+            {guidedActive && (
+                <GuidedWorkoutSession
+                    exercises={todayExercises}
+                    stats={exerciseStats}
+                    onClose={() => {
+                        setGuidedActive(false);
+                        api.get('/workouts/sessions/my')
+                            .then(r => setSessionHistory(r.data))
+                            .catch(() => {});
+                    }}
+                />
+            )}
+
             <div className="flex-1 min-w-0">
                 <header className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl border-b border-black/5 dark:border-white/10 p-5 sticky top-0 z-10">
                     <div className="flex items-center justify-between">
@@ -491,6 +521,16 @@ export function WorkoutView() {
                             {t('workout_view.title')}
                         </h2>
                         <div className="flex items-center gap-2">
+                            {user.role === 'STUDENT' && todayExercises.length > 0 && (
+                                <button
+                                    onClick={() => setGuidedActive(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-2xl hover:bg-blue-700 transition-colors active:scale-95"
+                                >
+                                    <Zap className="w-3.5 h-3.5" />
+                                    Treinar agora
+                                </button>
+                            )}
+
                             {totalVolume > 0 && viewMode === 'card' && (
                                 <div className="flex items-center gap-2 bg-purple-100/80 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-4 py-1.5 rounded-full text-sm font-medium">
                                     <span>{t('workout_view.total_volume')}</span>
@@ -576,16 +616,19 @@ export function WorkoutView() {
                     </div>
 
                     {isLoading ? (
-                        <div className="p-12 text-center text-gray-400">...</div>
+                        <ListSkeleton rows={3} />
                     ) : exercises.length === 0 ? (
-                        <div className={`${glassCard} p-10 text-center text-gray-500`}>
-                            {t('workout_view.no_workouts')}
-                        </div>
+                        <EmptyState
+                            icon={Dumbbell}
+                            title={t('workout_view.no_workouts')}
+                            description="Seu personal trainer ainda não criou exercícios para você."
+                        />
                     ) : (
                         exercises.map((ex, idx) => {
                             const embedUrl = ex.videoUrl ? getEmbedUrl(ex.videoUrl) : null;
                             const thumbnail = ex.videoUrl ? getYoutubeThumbnail(ex.videoUrl) : null;
                             const hasPr = prMap[ex.id];
+                            const stats = exerciseStats[ex.id] ?? null;
                             const history = historyData[ex.id] ?? [];
                             const chartData = history.map(h => ({
                                 date: new Date(h.completedAt).toLocaleDateString(),
@@ -599,7 +642,7 @@ export function WorkoutView() {
                                             className="relative w-full h-44 cursor-pointer group"
                                             onClick={() => embedUrl && setModalUrl(embedUrl)}
                                         >
-                                            <img src={thumbnail} alt={ex.name} className="w-full h-full object-cover" />
+                                            <img src={thumbnail} alt={ex.name} loading="lazy" className="w-full h-full object-cover" />
                                             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">
                                                 <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover:scale-110 transition-transform">
                                                     <Play className="w-6 h-6 text-white fill-white ml-1" />
@@ -639,6 +682,25 @@ export function WorkoutView() {
                                                         {ex.restTime}s {t('rest_timer.rest_label')}
                                                     </span>
                                                 )}
+                                                {stats && (stats.lastWeight || stats.lastReps) && (
+                                                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                                        {stats.lastWeight != null && (
+                                                            <span className="text-[11px] bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">
+                                                                Última: <span className="font-semibold text-slate-700 dark:text-slate-200">{stats.lastWeight}kg × {stats.lastReps}</span>
+                                                            </span>
+                                                        )}
+                                                        {stats.prWeight != null && stats.prWeight !== stats.lastWeight && (
+                                                            <span className="text-[11px] bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 rounded-full">
+                                                                🏆 PR: <span className="font-semibold">{stats.prWeight}kg × {stats.prReps}</span>
+                                                            </span>
+                                                        )}
+                                                        {stats.prWeight != null && stats.prWeight === stats.lastWeight && (
+                                                            <span className="text-[11px] bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 rounded-full font-semibold">
+                                                                🏆 PR atual!
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 {ex.tonnage !== null && ex.tonnage > 0 && (
@@ -660,17 +722,17 @@ export function WorkoutView() {
                                                         <button
                                                             onClick={() => openEditModal(ex)}
                                                             className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95"
-                                                            title="Edit exercise"
+                                                            aria-label={`Editar ${ex.name}`}
                                                         >
-                                                            <Pencil className="w-4 h-4" />
+                                                            <Pencil className="w-4 h-4" aria-hidden="true" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteExercise(ex.id)}
                                                             disabled={deletingId === ex.id}
                                                             className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors active:scale-95"
-                                                            title="Delete exercise"
+                                                            aria-label={`Excluir ${ex.name}`}
                                                         >
-                                                            {deletingId === ex.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                            {deletingId === ex.id ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Trash2 className="w-4 h-4" aria-hidden="true" />}
                                                         </button>
                                                     </>
                                                 )}
@@ -738,6 +800,41 @@ export function WorkoutView() {
                         })
                     )}
                     </> /* end card view */
+                    )}
+
+                    {user.role === 'STUDENT' && (
+                        <WorkoutFeedbackCard
+                            existingFeedback={todayFeedback}
+                            onSubmitted={setTodayFeedback}
+                        />
+                    )}
+
+                    {user.role === 'STUDENT' && sessionHistory.length > 0 && (
+                        <div className={glassCard + ' p-5'}>
+                            <div className="flex items-center gap-2 mb-4">
+                                <History className="w-4 h-4 text-indigo-400" />
+                                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Histórico de sessões</span>
+                            </div>
+                            <div className="space-y-2">
+                                {sessionHistory.map(s => (
+                                    <div key={s.id} className="flex items-center gap-3 p-3 rounded-2xl bg-black/5 dark:bg-white/5">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-400">
+                                                {new Date(s.sessionDate).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                                            </p>
+                                            <p className="text-sm text-gray-700 dark:text-gray-200 mt-0.5">
+                                                {s.exercises} exerc. · {s.sets} séries · <span className="text-purple-600 dark:text-purple-400 font-medium">{s.tonnageKg.toFixed(0)} kg vol.</span>
+                                            </p>
+                                        </div>
+                                        {s.prCount > 0 && (
+                                            <span className="text-xs bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 rounded-full font-medium shrink-0">
+                                                🏆 ×{s.prCount}
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
                 </main>
             </div>

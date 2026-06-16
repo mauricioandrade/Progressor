@@ -1,11 +1,13 @@
+import { glassCard, inputClass, selectClass } from '../styles/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Trash2, Loader2, UtensilsCrossed, SearchX } from 'lucide-react';
+import { Search, Plus, Trash2, Loader2, UtensilsCrossed, SearchX, ScanBarcode } from 'lucide-react';
 import axios from 'axios';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
 import toast from 'react-hot-toast';
+import { BarcodeScannerModal } from '../components/BarcodeScannerModal';
 
 interface Patient { id: string; name: string; email: string; }
 
@@ -47,9 +49,6 @@ const MACRO_COLORS = {
     fatBg: 'bg-amber-50 dark:bg-amber-900/20',
 };
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
-const inputClass = 'w-full px-4 py-2.5 border border-black/15 dark:border-white/20 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none text-sm';
-const selectClass = 'w-full px-4 py-2.5 border border-black/15 dark:border-white/20 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none';
 
 function scaled(entry: MealEntry) {
     const ratio = entry.quantity / 100;
@@ -83,7 +82,7 @@ function MacroPill({ label, value, unit = 'g', colorClass, bgClass }: MacroPillP
 
 export function NutritionistDietBuilder() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
 
     const [patients, setPatients] = useState<Patient[]>([]);
     const [selectedPatient, setSelectedPatient] = useState('');
@@ -98,6 +97,8 @@ export function NutritionistDietBuilder() {
     const [foodResults, setFoodResults] = useState<FoodResult[]>([]);
     const [isSearchingFood, setIsSearchingFood] = useState(false);
     const [searchPerformed, setSearchPerformed] = useState(false);
+
+    const [showScanner, setShowScanner] = useState(false);
 
     const [planId, setPlanId] = useState<string | null>(null);
     const [cheatMeal, setCheatMeal] = useState(false);
@@ -305,6 +306,12 @@ export function NutritionistDietBuilder() {
 
     return (
         <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900">
+            {showScanner && (
+                <BarcodeScannerModal
+                    onFound={addFood}
+                    onClose={() => setShowScanner(false)}
+                />
+            )}
             <Sidebar role={user.role} />
             <div className="flex-1 min-w-0 flex flex-col">
                 <header className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-b border-black/5 dark:border-white/10 p-5 sticky top-0 z-20">
@@ -409,6 +416,14 @@ export function NutritionistDietBuilder() {
                                 placeholder={t('nutrition.food_search_placeholder')}
                                 className={inputClass}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowScanner(true)}
+                                title="Escanear código de barras"
+                                className="shrink-0 flex items-center justify-center w-11 h-11 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors active:scale-95"
+                            >
+                                <ScanBarcode className="w-5 h-5" />
+                            </button>
                             <button
                                 type="submit"
                                 disabled={isSearchingFood}

@@ -1,21 +1,21 @@
+import { glassCard, inputClass } from '../styles/shared';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Camera, Scale, Sun, Moon, LogOut, Save } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 import { api } from '../services/api';
+import { authService } from '../services/auth';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 interface Profile { fullName: string; email: string; hasAvatar: boolean; }
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
-const inputClass = 'w-full px-4 py-2.5 border border-black/15 dark:border-white/20 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none text-sm';
 
 export function SettingsPage() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
 
@@ -82,8 +82,8 @@ export function SettingsPage() {
         }
     }
 
-    function handleLogout() {
-        localStorage.removeItem('@Progressor:token');
+    async function handleLogout() {
+        await authService.signOut();
         navigate('/login', { replace: true });
     }
 

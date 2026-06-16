@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -183,7 +183,7 @@ function StudentNotesPanel({ photo, onNotesSaved }: StudentNotesPanelProps) {
 
 export function VisualProgressPage() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [photos, setPhotos] = useState<ProgressPhoto[]>([]);

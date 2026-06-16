@@ -1,3 +1,4 @@
+import { glassCard } from '../styles/shared';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -13,7 +14,8 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { CardSkeleton } from '../components/ui/Skeleton';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
 
 interface Measurement {
@@ -35,11 +37,10 @@ interface Measurement {
 
 const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16'];
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
 
 export function MeasurementsPage() {
     const { t, i18n } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const [measurements, setMeasurements] = useState<Measurement[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -120,7 +121,7 @@ export function MeasurementsPage() {
 
                 <main className="p-4 md:p-6 space-y-5 pb-24 md:pb-6">
                     {isLoading ? (
-                        <div className="p-12 text-center text-gray-400">...</div>
+                        <div className="space-y-4"><CardSkeleton /><CardSkeleton /></div>
                     ) : measurements.length === 0 ? (
                         <div className={`${glassCard} p-10 text-center`}>
                             <p className="text-gray-500 mb-4">{t('measurements.no_data')}</p>

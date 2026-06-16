@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { glassCard } from '../styles/shared';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
+import { useNutritionistStudents } from '../hooks/queries';
 
 interface Patient {
     id: string;
@@ -12,30 +14,18 @@ interface Patient {
     email: string;
 }
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
 const inputClass = 'flex-1 px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-2xl bg-white/60 dark:bg-white/5 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none text-sm backdrop-blur-sm';
 
 export function NutritionistPatients() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const navigate = useNavigate();
-    const [patients, setPatients] = useState<Patient[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { data: patients = [], isPending: isLoading } = useNutritionistStudents();
     const [searchEmail, setSearchEmail] = useState('');
     const [searchResult, setSearchResult] = useState<Patient | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState('');
     const [assignSuccess, setAssignSuccess] = useState('');
-
-    function loadPatients() {
-        setIsLoading(true);
-        api.get('/users/my-students/nutritionist')
-            .then(r => setPatients(r.data))
-            .catch(() => {})
-            .finally(() => setIsLoading(false));
-    }
-
-    useEffect(() => { loadPatients(); }, []);
 
     if (!user) return null;
 

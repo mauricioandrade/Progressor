@@ -1,8 +1,9 @@
+import { glassCard } from '../styles/shared';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, LayoutGrid, X } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -56,7 +57,6 @@ function calcTonnage(ex: ExerciseForm): number | null {
 
 const inputClass = 'w-full border border-white/30 dark:border-white/10 bg-white/50 dark:bg-white/5 text-gray-900 dark:text-gray-100 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-sm';
 const labelClass = 'block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1';
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
 
 const BLOCK_COLORS = [
     'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
@@ -68,7 +68,7 @@ const BLOCK_COLORS = [
 
 export function WorkoutBuilder() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const [students, setStudents] = useState<Student[]>([]);
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [exercises, setExercises] = useState<ExerciseForm[]>([emptyExercise()]);

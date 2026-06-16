@@ -1,8 +1,9 @@
+import { glassCard } from '../styles/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { getAuthState } from '../hooks/useAuth';
 import { api } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -29,11 +30,10 @@ function emptyForm(): FormData {
     };
 }
 
-const glassCard = 'bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-black/5 dark:border-white/[0.07] rounded-3xl shadow-sm';
 
 export function StudentSelfAssessment() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user } = getAuthState();
     const navigate = useNavigate();
     const [form, setForm] = useState<FormData>(emptyForm());
     const [successMessage, setSuccessMessage] = useState('');

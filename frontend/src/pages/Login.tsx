@@ -21,8 +21,7 @@ export function Login() {
         setErrorMessage('');
 
         try {
-            const data = await authService.signIn({ email, password });
-            localStorage.setItem('@Progressor:token', data.token);
+            await authService.signIn({ email, password });
             navigate('/dashboard');
         } catch (error) {
             if (axios.isAxiosError(error)) {

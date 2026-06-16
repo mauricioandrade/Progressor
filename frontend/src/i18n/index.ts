@@ -394,7 +394,8 @@ const resources = {
             },
             common: {
                 cancel: "Cancel",
-                add: "Add"
+                add: "Add",
+                delete: "Delete"
             },
             toast: {
                 workout_saved: "Workout saved!",
@@ -414,6 +415,7 @@ const resources = {
             },
             edit_exercise: {
                 title: "Edit Exercise",
+                confirm_delete: "Are you sure you want to delete this exercise? This action cannot be undone.",
                 name: "Exercise Name",
                 sets: "Sets",
                 reps: "Repetitions",
@@ -455,6 +457,7 @@ const resources = {
             },
             meal_plan: {
                 edit_title: "Edit Plan",
+                confirm_delete: "Are you sure you want to delete this diet plan? This action cannot be undone.",
                 name_label: "Plan Name",
                 goal_label: "Goal",
                 cheat_meal: "Cheat Meal",
@@ -871,7 +874,8 @@ const resources = {
             },
             common: {
                 cancel: "Cancelar",
-                add: "Adicionar"
+                add: "Adicionar",
+                delete: "Excluir"
             },
             toast: {
                 workout_saved: "Treino salvo!",
@@ -891,6 +895,7 @@ const resources = {
             },
             edit_exercise: {
                 title: "Editar Exercício",
+                confirm_delete: "Tem certeza que deseja excluir este exercício? Esta ação não pode ser desfeita.",
                 name: "Nome do Exercício",
                 sets: "Séries",
                 reps: "Repetições",
@@ -932,6 +937,7 @@ const resources = {
             },
             meal_plan: {
                 edit_title: "Editar Plano",
+                confirm_delete: "Tem certeza que deseja excluir este plano alimentar? Esta ação não pode ser desfeita.",
                 name_label: "Nome do Plano",
                 goal_label: "Objetivo",
                 cheat_meal: "Refeição Livre",
