@@ -65,9 +65,9 @@
 ### 🏋️ Workout Management
 - Structured workout plans with **WorkoutPlan → WorkoutBlock → WorkoutExercise** hierarchy
 - **Spreadsheet Matrix View** — see the last 4 training sessions side-by-side per exercise, grouped by block
+- **Guided Workout Session** — full-screen mode that walks the student through each set with a live SVG rest-timer countdown and automatic session save
 - Daily check-in system with gym frequency graph (`ContributionGraph`)
 - Exercise history & personal records tracking
-- Rest timer with floating pill UI
 - Exportable PDF workout sheet via JasperReports
 
 ### 📊 Progress Tracking
@@ -83,6 +83,8 @@
 - **Native Brazilian food data in PT-BR** — real supermarket brands and local products (e.g., "Frango Assado Bob's", "Pão de Queijo Forno de Minas") with names already in Portuguese
 - Macro-nutrient breakdown per 100g and per meal (kcal, protein, carbs, fat)
 - Meal plans grouped by BREAKFAST / LUNCH / DINNER / SNACK
+- **Meal Consumption Toggle** — check off each item as consumed; live adherence bar per meal
+- **Extra Food Log** — add unplanned items by name search or barcode scan; deletable from the same screen
 - Daily water intake tracker with custom goals
 - Cheat meal flag 🍔
 
@@ -408,11 +410,20 @@ Navigate to `http://localhost:5173/signup` and create an account as **Student**,
 - [x] Flyway database migrations (`V2__add_invites_and_workout_blocks.sql`)
 - [x] 32+ automated tests (JUnit 5 backend + Vitest frontend)
 
-### 🔄 In Progress
-- [ ] Push notifications for student inactivity alerts (> 3 days without check-in)
-- [ ] Student goals & personal notes module
+### ✅ V1.2 — Completed
+- [x] **Guided Workout Session** — full-screen overlay with per-set logging, animated rest timer (SVG ring), skip-rest shortcut, and automatic session save on completion
+- [x] **Workout Session History** — student sees last 10 sessions with exercises count, sets, tonnage (kg), and PRs
+- [x] **Workout Feedback in Student Detail** — trainer/nutri sees per-exercise star ratings and comments grouped by student history
+- [x] **Meal Consumption Toggle** — student checks off each meal plan item; consumed items shown with green background + strikethrough; adherence bar updates live
+- [x] **Extra Food Log** — search via Open Food Facts or scan barcode, add free items outside the plan; items listed with delete option
+- [x] **Meal Adherence Chart** — trainer/nutri views per-day adherence bars (7-day) with color-coded thresholds (green ≥80 %, yellow ≥50 %, red <50 %)
+- [x] **Meal Adherence Alert Scheduler** — daily job detects students inactive for 2+ days and sends push notification to their nutritionist
+- [x] **Flyway migrations V5–V7** — `meal_consumption_logs`, `workout_sessions` tables; partial unique index for plan-item toggle; extra-food columns
 
-### 🔮 Planned
+### 🔮 Next Steps
+- [ ] **Morning workout reminder** — push notification to each student at 09:00 listing today's scheduled exercises (push infrastructure already in place)
+- [ ] **Aggregate professional dashboard** — single view for trainer/nutri with all students' recent activity, adherence, and pending feedback
+- [ ] **In-app chat** — direct messaging between student and professional within the platform
 - [ ] Mobile app (React Native)
 - [ ] AI-powered workout suggestions based on student history
 - [ ] Wearable integrations (Garmin, Apple Health, Google Fit)

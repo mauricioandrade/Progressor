@@ -65,9 +65,9 @@
 ### 🏋️ Gestão de Treinos
 - Planos estruturados com hierarquia **PlanoTreino → BlocoTreino → Exercício**
 - **Visão em Planilha (Matriz)** — veja as últimas 4 sessões de cada exercício lado a lado, agrupadas por bloco
+- **Sessão de Treino Guiado** — modo tela cheia que conduz o aluno por cada série com cronômetro SVG animado e salvamento automático da sessão ao concluir
 - Sistema de check-in diário com gráfico de frequência (`ContributionGraph`)
 - Histórico de exercícios e recordes pessoais
-- Cronômetro de descanso com UI de pílula flutuante
 - Planilha de treino exportável em PDF via JasperReports
 
 ### 📊 Acompanhamento de Progresso
@@ -83,6 +83,8 @@
 - **Alimentos brasileiros nativos em PT-BR** — marcas reais de supermercado e produtos locais (ex.: "Frango Assado Bob's", "Pão de Queijo Forno de Minas") com nomes já em português
 - Divisão de macronutrientes por 100g e por refeição (kcal, proteína, carboidratos, gordura)
 - Planos alimentares agrupados por CAFÉ DA MANHÃ / ALMOÇO / JANTAR / LANCHE
+- **Registro de consumo alimentar** — marque cada item do plano como consumido; barra de aderência por refeição atualizada em tempo real
+- **Log de alimentos extras** — adicione itens fora do plano por busca textual ou leitura de código de barras; removíveis na mesma tela
 - Rastreador de hidratação diária com metas personalizadas
 - Marcador de refeição cheat 🍔
 
@@ -408,11 +410,20 @@ Acesse `http://localhost:5173/signup` e registre-se como **Aluno**, **Personal T
 - [x] Migrações Flyway (`V2__add_invites_and_workout_blocks.sql`)
 - [x] 32+ testes automatizados (JUnit 5 backend + Vitest frontend)
 
-### 🔄 Em Andamento
-- [ ] Notificações push para alertas de inatividade do aluno (> 3 dias sem check-in)
-- [ ] Módulo de metas e anotações pessoais do aluno
+### ✅ V1.2 — Concluído
+- [x] **Sessão de Treino Guiado** — overlay em tela cheia com registro por série, cronômetro SVG animado, atalho para pular descanso e salvamento automático da sessão
+- [x] **Histórico de sessões de treino** — aluno visualiza as últimas 10 sessões com exercícios, séries, tonelagem (kg) e PRs
+- [x] **Feedbacks de treino no detalhe do aluno** — profissional vê avaliações em estrelas e comentários por exercício agrupados por aluno
+- [x] **Toggle de consumo alimentar** — aluno marca cada item do plano; itens consumidos exibidos com fundo verde e tachado; barra de aderência atualizada em tempo real
+- [x] **Log de alimentos extras** — busca via Open Food Facts ou scan de código de barras; itens listados com opção de remover
+- [x] **Gráfico de aderência alimentar** — profissional visualiza barras diárias de aderência (7 dias) com limiares por cor (verde ≥80 %, amarelo ≥50 %, vermelho <50 %)
+- [x] **Agendador de alerta de aderência** — job diário detecta alunos inativos há 2+ dias e envia push notification ao nutricionista
+- [x] **Migrações Flyway V5–V7** — tabelas `meal_consumption_logs`, `workout_sessions`; índice único parcial para toggle de itens; colunas de alimentos extras
 
-### 🔮 Planejado
+### 🔮 Próximos Passos
+- [ ] **Lembrete matinal de treino** — push notification para o aluno às 09h listando os exercícios do dia (infraestrutura de push já implementada)
+- [ ] **Dashboard agregado para o profissional** — visão única com todos os alunos, atividade recente, aderência e feedbacks pendentes
+- [ ] **Chat interno** — mensagens diretas entre aluno e profissional dentro da plataforma
 - [ ] Aplicativo mobile (React Native)
 - [ ] Sugestão de treinos por IA baseada no histórico do aluno
 - [ ] Integração com wearables (Garmin, Apple Health, Google Fit)
