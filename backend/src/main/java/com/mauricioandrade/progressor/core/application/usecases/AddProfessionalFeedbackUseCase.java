@@ -2,6 +2,7 @@ package com.mauricioandrade.progressor.core.application.usecases;
 
 import com.mauricioandrade.progressor.core.application.dto.ProgressPhotoResponse;
 import com.mauricioandrade.progressor.core.application.ports.ProgressPhotoRepository;
+import com.mauricioandrade.progressor.core.application.ports.PushNotificationPort;
 import com.mauricioandrade.progressor.core.domain.photo.ProgressPhoto;
 import java.util.Base64;
 import java.util.UUID;
@@ -9,9 +10,12 @@ import java.util.UUID;
 public class AddProfessionalFeedbackUseCase {
 
   private final ProgressPhotoRepository repository;
+  private final PushNotificationPort pushNotification;
 
-  public AddProfessionalFeedbackUseCase(ProgressPhotoRepository repository) {
+  public AddProfessionalFeedbackUseCase(ProgressPhotoRepository repository,
+      PushNotificationPort pushNotification) {
     this.repository = repository;
+    this.pushNotification = pushNotification;
   }
 
   public ProgressPhotoResponse execute(UUID photoId, UUID professionalId, String professionalName,
@@ -25,6 +29,9 @@ public class AddProfessionalFeedbackUseCase {
     }
     photo.applyFeedback(professionalId, professionalName, professionalRole, feedback);
     ProgressPhoto saved = repository.save(photo);
+    pushNotification.sendToStudent(saved.getStudentId(),
+        "Novo feedback na sua foto! 📸",
+        professionalName + " comentou na sua foto de progresso.");
     return new ProgressPhotoResponse(saved.getId(), saved.getTakenAt(), saved.getDescription(),
         Base64.getEncoder().encodeToString(saved.getPhotoData()),
         saved.getProfessionalFeedback(), saved.getProfessionalId(), saved.getProfessionalName(),

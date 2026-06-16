@@ -2,6 +2,7 @@ package com.mauricioandrade.progressor.core.application.usecases;
 
 import com.mauricioandrade.progressor.core.application.dto.CreateWorkoutExerciseRequest;
 import com.mauricioandrade.progressor.core.application.dto.CreateWorkoutRequest;
+import com.mauricioandrade.progressor.core.application.ports.PushNotificationPort;
 import com.mauricioandrade.progressor.core.application.ports.UserRepository;
 import com.mauricioandrade.progressor.core.application.ports.WorkoutRepository;
 import com.mauricioandrade.progressor.core.domain.workout.MeasurementType;
@@ -13,10 +14,13 @@ public class CreateWorkoutUseCase {
 
   private final WorkoutRepository workoutRepository;
   private final UserRepository userRepository;
+  private final PushNotificationPort pushNotification;
 
-  public CreateWorkoutUseCase(WorkoutRepository workoutRepository, UserRepository userRepository) {
+  public CreateWorkoutUseCase(WorkoutRepository workoutRepository, UserRepository userRepository,
+      PushNotificationPort pushNotification) {
     this.workoutRepository = workoutRepository;
     this.userRepository = userRepository;
+    this.pushNotification = pushNotification;
   }
 
   public void execute(CreateWorkoutRequest request) {
@@ -63,5 +67,7 @@ public class CreateWorkoutUseCase {
     }
 
     workoutRepository.saveAll(workoutExercises, request.studentId());
+    pushNotification.sendToStudent(request.studentId(),
+        "Treino atualizado! 💪", "Seu personal adicionou novos exercícios ao seu treino.");
   }
 }
