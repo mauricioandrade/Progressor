@@ -7,7 +7,8 @@ import com.mauricioandrade.progressor.core.application.usecases.DeleteProgressPh
 import com.mauricioandrade.progressor.core.application.usecases.GetProgressPhotosUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.UpdateStudentNotesUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.UploadProgressPhotoUseCase;
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
+import com.mauricioandrade.progressor.infrastructure.security.OwnershipValidator;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -37,18 +38,21 @@ public class ProgressPhotoController {
   private final AddProfessionalFeedbackUseCase feedbackUseCase;
   private final DeleteProfessionalFeedbackUseCase deleteFeedbackUseCase;
   private final UpdateStudentNotesUseCase studentNotesUseCase;
+  private final OwnershipValidator ownershipValidator;
 
   public ProgressPhotoController(UploadProgressPhotoUseCase uploadUseCase,
       GetProgressPhotosUseCase getUseCase, DeleteProgressPhotoUseCase deleteUseCase,
       AddProfessionalFeedbackUseCase feedbackUseCase,
       DeleteProfessionalFeedbackUseCase deleteFeedbackUseCase,
-      UpdateStudentNotesUseCase studentNotesUseCase) {
+      UpdateStudentNotesUseCase studentNotesUseCase,
+      OwnershipValidator ownershipValidator) {
     this.uploadUseCase = uploadUseCase;
     this.getUseCase = getUseCase;
     this.deleteUseCase = deleteUseCase;
     this.feedbackUseCase = feedbackUseCase;
     this.deleteFeedbackUseCase = deleteFeedbackUseCase;
     this.studentNotesUseCase = studentNotesUseCase;
+    this.ownershipValidator = ownershipValidator;
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -57,7 +61,7 @@ public class ProgressPhotoController {
       @RequestParam(value = "description", defaultValue = "") String description,
       @RequestParam(value = "takenAt", required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate takenAt,
-      @AuthenticationPrincipal UserEntity currentUser) throws Exception {
+      @AuthenticationPrincipal UserPrincipal currentUser) throws Exception {
     ProgressPhotoResponse response = uploadUseCase.execute(currentUser.getId(), file.getBytes(),
         takenAt, description);
     return ResponseEntity.ok(response);
@@ -65,14 +69,17 @@ public class ProgressPhotoController {
 
   @GetMapping("/my")
   public ResponseEntity<List<ProgressPhotoResponse>> getMyPhotos(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getUseCase.execute(currentUser.getId()));
   }
 
   @GetMapping("/student/{studentId}")
   public ResponseEntity<List<ProgressPhotoResponse>> getStudentPhotos(
       @PathVariable UUID studentId,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return ResponseEntity.ok(getUseCase.execute(studentId));
   }
 
@@ -80,10 +87,9 @@ public class ProgressPhotoController {
   public ResponseEntity<ProgressPhotoResponse> addFeedback(
       @PathVariable UUID id,
       @RequestBody Map<String, String> body,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     String professionalName = currentUser.getFirstName() + " " + currentUser.getLastName();
-    String professionalRole = currentUser.getAuthorities().iterator().next()
-        .getAuthority().replace("ROLE_", "");
+    String professionalRole = currentUser.getRole();
     String feedback = body.getOrDefault("feedback", "").trim();
     if (feedback.isEmpty()) {
       throw new IllegalArgumentException("Feedback must not be empty");
@@ -97,7 +103,7 @@ public class ProgressPhotoController {
   public ResponseEntity<ProgressPhotoResponse> updateStudentNotes(
       @PathVariable UUID id,
       @RequestBody Map<String, String> body,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     String notes = body.getOrDefault("notes", "").trim();
     ProgressPhotoResponse response = studentNotesUseCase.execute(id, currentUser.getId(), notes);
     return ResponseEntity.ok(response);
@@ -106,14 +112,14 @@ public class ProgressPhotoController {
   @DeleteMapping("/{id}/feedback")
   public ResponseEntity<ProgressPhotoResponse> deleteFeedback(
       @PathVariable UUID id,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     ProgressPhotoResponse response = deleteFeedbackUseCase.execute(id, currentUser.getId());
     return ResponseEntity.ok(response);
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(@PathVariable UUID id,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     deleteUseCase.execute(id, currentUser.getId());
     return ResponseEntity.noContent().build();
   }

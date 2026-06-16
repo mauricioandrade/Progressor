@@ -12,6 +12,11 @@ public class NutritionistEntity extends UserEntity {
   public NutritionistEntity() {
   }
 
+  @Override
+  public String getRole() {
+    return "NUTRITIONIST";
+  }
+
   public String getCrn() {
     return crn;
   }

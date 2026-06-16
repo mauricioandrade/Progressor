@@ -1,6 +1,21 @@
 package com.mauricioandrade.progressor.infrastructure.config;
 
 import com.mauricioandrade.progressor.core.application.ports.CheckInRepository;
+import com.mauricioandrade.progressor.core.application.ports.PushNotificationPort;
+import com.mauricioandrade.progressor.core.application.ports.MealConsumptionLogRepository;
+import com.mauricioandrade.progressor.core.application.ports.WorkoutSessionRepository;
+import com.mauricioandrade.progressor.core.application.usecases.SaveWorkoutSessionUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetMyWorkoutSessionsUseCase;
+import com.mauricioandrade.progressor.core.application.ports.WorkoutFeedbackRepository;
+import com.mauricioandrade.progressor.core.application.usecases.DeleteExtraFoodLogUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetStudentAdherenceUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetTodayConsumptionUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.LogExtraFoodUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.ToggleMealConsumptionUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.SubmitWorkoutFeedbackUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetStudentFeedbacksUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetTodayFeedbackUseCase;
+import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataWorkoutLogRepository;
 import com.mauricioandrade.progressor.core.application.ports.ConnectionRequestRepository;
 import com.mauricioandrade.progressor.core.application.ports.EmailPort;
 import com.mauricioandrade.progressor.core.application.ports.FoodSearchPort;
@@ -47,6 +62,7 @@ import com.mauricioandrade.progressor.core.application.usecases.GenerateMealPlan
 import com.mauricioandrade.progressor.core.application.usecases.GenerateProgressReportUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GenerateWorkoutSheetUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetExerciseHistoryUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetExerciseStatsUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetNutritionistStudentsUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetStudentFrequencyUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetStudentMealPlanUseCase;
@@ -63,6 +79,7 @@ import com.mauricioandrade.progressor.core.application.usecases.RecordMeasuremen
 import com.mauricioandrade.progressor.core.application.usecases.RegisterNutritionistUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.RegisterPersonalTrainerUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.RegisterStudentUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.LookupFoodByBarcodeUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.SearchFoodUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.SetWaterGoalUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.UpdateAvatarUseCase;
@@ -114,8 +131,8 @@ public class UseCaseConfig {
 
   @Bean
   public AssignStudentToTrainerUseCase assignStudentToTrainerUseCase(
-      UserRepository userRepository) {
-    return new AssignStudentToTrainerUseCase(userRepository);
+      UserRepository userRepository, ConnectionRequestRepository connectionRequestRepository) {
+    return new AssignStudentToTrainerUseCase(userRepository, connectionRequestRepository);
   }
 
   @Bean
@@ -125,8 +142,8 @@ public class UseCaseConfig {
 
   @Bean
   public CreateWorkoutUseCase createWorkoutUseCase(WorkoutRepository workoutRepository,
-      UserRepository userRepository) {
-    return new CreateWorkoutUseCase(workoutRepository, userRepository);
+      UserRepository userRepository, PushNotificationPort pushNotificationPort) {
+    return new CreateWorkoutUseCase(workoutRepository, userRepository, pushNotificationPort);
   }
 
   @Bean
@@ -198,6 +215,12 @@ public class UseCaseConfig {
   }
 
   @Bean
+  public GetExerciseStatsUseCase getExerciseStatsUseCase(
+      SpringDataWorkoutLogRepository workoutLogRepository) {
+    return new GetExerciseStatsUseCase(workoutLogRepository);
+  }
+
+  @Bean
   public GetExerciseHistoryUseCase getExerciseHistoryUseCase(
       WorkoutLogRepository workoutLogRepository) {
     return new GetExerciseHistoryUseCase(workoutLogRepository);
@@ -225,8 +248,9 @@ public class UseCaseConfig {
   }
 
   @Bean
-  public AssignStudentToNutritionistUseCase assignStudentToNutritionistUseCase(UserRepository userRepository) {
-    return new AssignStudentToNutritionistUseCase(userRepository);
+  public AssignStudentToNutritionistUseCase assignStudentToNutritionistUseCase(
+      UserRepository userRepository, ConnectionRequestRepository connectionRequestRepository) {
+    return new AssignStudentToNutritionistUseCase(userRepository, connectionRequestRepository);
   }
 
   @Bean
@@ -235,8 +259,9 @@ public class UseCaseConfig {
   }
 
   @Bean
-  public CreateMealPlanUseCase createMealPlanUseCase(MealPlanRepository mealPlanRepository) {
-    return new CreateMealPlanUseCase(mealPlanRepository);
+  public CreateMealPlanUseCase createMealPlanUseCase(MealPlanRepository mealPlanRepository,
+      PushNotificationPort pushNotificationPort) {
+    return new CreateMealPlanUseCase(mealPlanRepository, pushNotificationPort);
   }
 
   @Bean
@@ -247,6 +272,11 @@ public class UseCaseConfig {
   @Bean
   public SearchFoodUseCase searchFoodUseCase(FoodSearchPort foodSearchPort) {
     return new SearchFoodUseCase(foodSearchPort);
+  }
+
+  @Bean
+  public LookupFoodByBarcodeUseCase lookupFoodByBarcodeUseCase(FoodSearchPort foodSearchPort) {
+    return new LookupFoodByBarcodeUseCase(foodSearchPort);
   }
 
   @Bean
@@ -289,8 +319,8 @@ public class UseCaseConfig {
 
   @Bean
   public AddProfessionalFeedbackUseCase addProfessionalFeedbackUseCase(
-      ProgressPhotoRepository progressPhotoRepository) {
-    return new AddProfessionalFeedbackUseCase(progressPhotoRepository);
+      ProgressPhotoRepository progressPhotoRepository, PushNotificationPort pushNotificationPort) {
+    return new AddProfessionalFeedbackUseCase(progressPhotoRepository, pushNotificationPort);
   }
 
   @Bean
@@ -349,12 +379,74 @@ public class UseCaseConfig {
   }
 
   @Bean
-  public UpdateMealPlanUseCase updateMealPlanUseCase(MealPlanRepository mealPlanRepository) {
-    return new UpdateMealPlanUseCase(mealPlanRepository);
+  public UpdateMealPlanUseCase updateMealPlanUseCase(MealPlanRepository mealPlanRepository,
+      PushNotificationPort pushNotificationPort) {
+    return new UpdateMealPlanUseCase(mealPlanRepository, pushNotificationPort);
   }
 
   @Bean
   public GetMealPlanHistoryUseCase getMealPlanHistoryUseCase(MealPlanRepository mealPlanRepository) {
     return new GetMealPlanHistoryUseCase(mealPlanRepository);
+  }
+
+  @Bean
+  public SaveWorkoutSessionUseCase saveWorkoutSessionUseCase(
+      WorkoutSessionRepository workoutSessionRepository) {
+    return new SaveWorkoutSessionUseCase(workoutSessionRepository);
+  }
+
+  @Bean
+  public GetMyWorkoutSessionsUseCase getMyWorkoutSessionsUseCase(
+      WorkoutSessionRepository workoutSessionRepository) {
+    return new GetMyWorkoutSessionsUseCase(workoutSessionRepository);
+  }
+
+  @Bean
+  public ToggleMealConsumptionUseCase toggleMealConsumptionUseCase(
+      MealConsumptionLogRepository mealConsumptionLogRepository) {
+    return new ToggleMealConsumptionUseCase(mealConsumptionLogRepository);
+  }
+
+  @Bean
+  public GetTodayConsumptionUseCase getTodayConsumptionUseCase(
+      MealConsumptionLogRepository mealConsumptionLogRepository) {
+    return new GetTodayConsumptionUseCase(mealConsumptionLogRepository);
+  }
+
+  @Bean
+  public LogExtraFoodUseCase logExtraFoodUseCase(
+      MealConsumptionLogRepository mealConsumptionLogRepository) {
+    return new LogExtraFoodUseCase(mealConsumptionLogRepository);
+  }
+
+  @Bean
+  public DeleteExtraFoodLogUseCase deleteExtraFoodLogUseCase(
+      MealConsumptionLogRepository mealConsumptionLogRepository) {
+    return new DeleteExtraFoodLogUseCase(mealConsumptionLogRepository);
+  }
+
+  @Bean
+  public GetStudentAdherenceUseCase getStudentAdherenceUseCase(
+      MealConsumptionLogRepository mealConsumptionLogRepository,
+      MealPlanRepository mealPlanRepository) {
+    return new GetStudentAdherenceUseCase(mealConsumptionLogRepository, mealPlanRepository);
+  }
+
+  @Bean
+  public SubmitWorkoutFeedbackUseCase submitWorkoutFeedbackUseCase(
+      WorkoutFeedbackRepository feedbackRepository, UserRepository userRepository) {
+    return new SubmitWorkoutFeedbackUseCase(feedbackRepository, userRepository);
+  }
+
+  @Bean
+  public GetTodayFeedbackUseCase getTodayFeedbackUseCase(
+      WorkoutFeedbackRepository feedbackRepository) {
+    return new GetTodayFeedbackUseCase(feedbackRepository);
+  }
+
+  @Bean
+  public GetStudentFeedbacksUseCase getStudentFeedbacksUseCase(
+      WorkoutFeedbackRepository feedbackRepository) {
+    return new GetStudentFeedbacksUseCase(feedbackRepository);
   }
 }

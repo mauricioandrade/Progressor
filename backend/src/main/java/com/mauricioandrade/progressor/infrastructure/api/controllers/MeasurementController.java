@@ -10,7 +10,8 @@ import com.mauricioandrade.progressor.core.application.usecases.GetStudentMeasur
 import com.mauricioandrade.progressor.core.application.usecases.GetWeightGoalUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.RecordMeasurementUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.UpdateWeightGoalUseCase;
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
+import com.mauricioandrade.progressor.infrastructure.security.OwnershipValidator;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -33,20 +34,25 @@ public class MeasurementController {
   private final GetStudentMeasurementsUseCase getStudentMeasurementsUseCase;
   private final UpdateWeightGoalUseCase updateWeightGoalUseCase;
   private final GetWeightGoalUseCase getWeightGoalUseCase;
+  private final OwnershipValidator ownershipValidator;
 
   public MeasurementController(RecordMeasurementUseCase recordMeasurementUseCase,
       GetStudentMeasurementsUseCase getStudentMeasurementsUseCase,
       UpdateWeightGoalUseCase updateWeightGoalUseCase,
-      GetWeightGoalUseCase getWeightGoalUseCase) {
+      GetWeightGoalUseCase getWeightGoalUseCase,
+      OwnershipValidator ownershipValidator) {
     this.recordMeasurementUseCase = recordMeasurementUseCase;
     this.getStudentMeasurementsUseCase = getStudentMeasurementsUseCase;
     this.updateWeightGoalUseCase = updateWeightGoalUseCase;
     this.getWeightGoalUseCase = getWeightGoalUseCase;
+    this.ownershipValidator = ownershipValidator;
   }
 
   @PostMapping
   public ResponseEntity<MeasurementCreatedResponse> recordMeasurement(
-      @Valid @RequestBody RecordMeasurementRequest request) {
+      @Valid @RequestBody RecordMeasurementRequest request,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertCoachOwnsStudent(currentUser.getId(), request.studentId());
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(recordMeasurementUseCase.execute(request));
   }
@@ -54,7 +60,7 @@ public class MeasurementController {
   @PostMapping("/my")
   public ResponseEntity<MeasurementCreatedResponse> recordSelfMeasurement(
       @RequestBody SelfMeasurementRequest request,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     RecordMeasurementRequest fullRequest = new RecordMeasurementRequest(currentUser.getId(),
         request.weight(), request.bodyFatPercentage(), request.rightBicep(), request.leftBicep(),
         request.chest(), request.waist(), request.abdomen(), request.hips(), request.leftThigh(),
@@ -65,13 +71,17 @@ public class MeasurementController {
 
   @GetMapping("/student/{studentId}")
   public ResponseEntity<List<MeasurementResponse>> getStudentMeasurements(
-      @PathVariable UUID studentId) {
+      @PathVariable UUID studentId,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return ResponseEntity.ok(getStudentMeasurementsUseCase.execute(studentId));
   }
 
   @GetMapping("/my")
   public ResponseEntity<List<MeasurementResponse>> getMyMeasurements(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getStudentMeasurementsUseCase.execute(currentUser.getId()));
   }
 
@@ -79,28 +89,36 @@ public class MeasurementController {
 
   @GetMapping("/my/weight-goal")
   public ResponseEntity<WeightGoalResponse> getMyWeightGoal(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getWeightGoalUseCase.execute(currentUser.getId()));
   }
 
   @PutMapping("/my/weight-goal")
   public ResponseEntity<Void> updateMyWeightGoal(
       @Valid @RequestBody WeightGoalRequest request,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     updateWeightGoalUseCase.execute(currentUser.getId(), request.goal());
     return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/weight-goal/student/{studentId}")
   public ResponseEntity<WeightGoalResponse> getStudentWeightGoal(
-      @PathVariable UUID studentId) {
+      @PathVariable UUID studentId,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return ResponseEntity.ok(getWeightGoalUseCase.execute(studentId));
   }
 
   @PutMapping("/weight-goal/{studentId}")
   public ResponseEntity<Void> updateStudentWeightGoal(
       @PathVariable UUID studentId,
-      @Valid @RequestBody WeightGoalRequest request) {
+      @Valid @RequestBody WeightGoalRequest request,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     updateWeightGoalUseCase.execute(studentId, request.goal());
     return ResponseEntity.noContent().build();
   }

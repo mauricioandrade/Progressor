@@ -6,7 +6,7 @@ import com.mauricioandrade.progressor.core.application.usecases.GetPendingConnec
 import com.mauricioandrade.progressor.core.application.usecases.RespondToConnectionRequestUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.SendConnectionRequestUseCase;
 import com.mauricioandrade.progressor.core.domain.connection.ProfessionalRole;
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -43,7 +43,7 @@ public class ConnectionRequestController {
   public ResponseEntity<Void> sendInvite(
       @RequestParam String studentEmail,
       @RequestParam ProfessionalRole role,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     sendConnectionRequestUseCase.execute(currentUser.getId(), studentEmail, role);
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
@@ -53,7 +53,7 @@ public class ConnectionRequestController {
    */
   @GetMapping("/pending")
   public ResponseEntity<List<ConnectionRequestResponse>> getPending(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getPendingConnectionRequestsUseCase.execute(currentUser.getId()));
   }
 
@@ -63,7 +63,7 @@ public class ConnectionRequestController {
   @PostMapping("/respond")
   public ResponseEntity<Void> respond(
       @Valid @RequestBody RespondToConnectionRequestRequest request,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     respondToConnectionRequestUseCase.execute(request.requestId(), currentUser.getId(),
         request.accepted());
     return ResponseEntity.ok().build();

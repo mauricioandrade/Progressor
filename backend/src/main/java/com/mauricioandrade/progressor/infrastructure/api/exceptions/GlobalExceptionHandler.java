@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +20,14 @@ public class GlobalExceptionHandler {
     StandardError err = new StandardError(LocalDateTime.now(), HttpStatus.UNAUTHORIZED.value(),
         "Unauthorized", "Invalid email or password", request.getRequestURI());
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<StandardError> handleAccessDeniedException(AccessDeniedException e,
+      HttpServletRequest request) {
+    StandardError err = new StandardError(LocalDateTime.now(), HttpStatus.FORBIDDEN.value(),
+        "Forbidden", e.getMessage(), request.getRequestURI());
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
   }
 
   @ExceptionHandler(IllegalArgumentException.class)

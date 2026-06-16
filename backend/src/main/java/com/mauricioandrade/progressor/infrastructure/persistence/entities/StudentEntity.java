@@ -24,6 +24,11 @@ public class StudentEntity extends UserEntity {
   public StudentEntity() {
   }
 
+  @Override
+  public String getRole() {
+    return "STUDENT";
+  }
+
   public UUID getPersonalTrainerId() {
     return personalTrainerId;
   }

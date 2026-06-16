@@ -2,7 +2,8 @@ package com.mauricioandrade.progressor.infrastructure.api.controllers;
 
 import com.mauricioandrade.progressor.core.application.usecases.CheckInStudentUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetStudentFrequencyUseCase;
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
+import com.mauricioandrade.progressor.infrastructure.security.OwnershipValidator;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -20,27 +21,34 @@ public class CheckInController {
 
   private final CheckInStudentUseCase checkInStudentUseCase;
   private final GetStudentFrequencyUseCase getStudentFrequencyUseCase;
+  private final OwnershipValidator ownershipValidator;
 
   public CheckInController(CheckInStudentUseCase checkInStudentUseCase,
-      GetStudentFrequencyUseCase getStudentFrequencyUseCase) {
+      GetStudentFrequencyUseCase getStudentFrequencyUseCase,
+      OwnershipValidator ownershipValidator) {
     this.checkInStudentUseCase = checkInStudentUseCase;
     this.getStudentFrequencyUseCase = getStudentFrequencyUseCase;
+    this.ownershipValidator = ownershipValidator;
   }
 
   @PostMapping("/my")
-  public ResponseEntity<Void> checkIn(@AuthenticationPrincipal UserEntity currentUser) {
+  public ResponseEntity<Void> checkIn(@AuthenticationPrincipal UserPrincipal currentUser) {
     checkInStudentUseCase.execute(currentUser.getId());
     return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/my")
   public ResponseEntity<List<LocalDate>> getMyFrequency(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getStudentFrequencyUseCase.execute(currentUser.getId()));
   }
 
   @GetMapping("/student/{studentId}")
-  public ResponseEntity<List<LocalDate>> getStudentFrequency(@PathVariable UUID studentId) {
+  public ResponseEntity<List<LocalDate>> getStudentFrequency(@PathVariable UUID studentId,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    ownershipValidator.assertProfessionalOwnsStudent(currentUser.getId(),
+        currentUser.getRole(),
+        studentId);
     return ResponseEntity.ok(getStudentFrequencyUseCase.execute(studentId));
   }
 }

@@ -12,6 +12,11 @@ public class PersonalTrainerEntity extends UserEntity {
   public PersonalTrainerEntity() {
   }
 
+  @Override
+  public String getRole() {
+    return "PERSONALTRAINER";
+  }
+
   public String getCref() {
     return cref;
   }

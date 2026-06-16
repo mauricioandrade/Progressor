@@ -14,6 +14,7 @@ import com.mauricioandrade.progressor.infrastructure.persistence.entities.Person
 import com.mauricioandrade.progressor.infrastructure.persistence.mappers.UserMapper;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataStudentRepository;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataUserRepository;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -150,6 +151,7 @@ public class UserRepositoryAdapter implements UserRepository {
   }
 
   @Override
+  @Transactional
   public void updateAvatar(UUID userId, byte[] avatar) {
     springDataRepository.findById(userId).ifPresent(entity -> {
       entity.setAvatar(avatar);
@@ -158,6 +160,7 @@ public class UserRepositoryAdapter implements UserRepository {
   }
 
   @Override
+  @Transactional
   public void updateWeightGoal(UUID studentId, Double goal) {
     springDataStudentRepository.findById(studentId).ifPresent(entity -> {
       entity.setWeightGoal(goal);
@@ -187,6 +190,7 @@ public class UserRepositoryAdapter implements UserRepository {
   }
 
   @Override
+  @Transactional
   public void saveResetToken(UUID userId, String token, LocalDateTime expiry) {
     springDataRepository.findById(userId).ifPresent(entity -> {
       entity.setResetToken(token);
@@ -196,6 +200,7 @@ public class UserRepositoryAdapter implements UserRepository {
   }
 
   @Override
+  @Transactional
   public void updatePassword(UUID userId, String encodedPassword) {
     springDataRepository.findById(userId).ifPresent(entity -> {
       entity.setPassword(encodedPassword);
@@ -204,6 +209,7 @@ public class UserRepositoryAdapter implements UserRepository {
   }
 
   @Override
+  @Transactional
   public void clearResetToken(UUID userId) {
     springDataRepository.findById(userId).ifPresent(entity -> {
       entity.setResetToken(null);

@@ -15,7 +15,9 @@ import com.mauricioandrade.progressor.core.application.usecases.RegisterNutritio
 import com.mauricioandrade.progressor.core.application.usecases.RegisterPersonalTrainerUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.RegisterStudentUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.UpdateAvatarUseCase;
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataUserRepository;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
+import com.mauricioandrade.progressor.infrastructure.security.ImageValidator;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,8 @@ public class UserController {
   private final AssignStudentToNutritionistUseCase assignStudentToNutritionistUseCase;
   private final FindStudentByEmailForNutritionistUseCase findStudentByEmailForNutritionistUseCase;
   private final UpdateAvatarUseCase updateAvatarUseCase;
+  private final ImageValidator imageValidator;
+  private final SpringDataUserRepository userRepository;
 
   public UserController(RegisterPersonalTrainerUseCase ptUseCase,
       RegisterStudentUseCase studentUseCase, RegisterNutritionistUseCase nutritionistUseCase,
@@ -57,7 +61,9 @@ public class UserController {
       GetNutritionistStudentsUseCase getNutritionistStudentsUseCase,
       AssignStudentToNutritionistUseCase assignStudentToNutritionistUseCase,
       FindStudentByEmailForNutritionistUseCase findStudentByEmailForNutritionistUseCase,
-      UpdateAvatarUseCase updateAvatarUseCase) {
+      UpdateAvatarUseCase updateAvatarUseCase,
+      ImageValidator imageValidator,
+      SpringDataUserRepository userRepository) {
     this.registerPersonalTrainerUseCase = ptUseCase;
     this.registerStudentUseCase = studentUseCase;
     this.registerNutritionistUseCase = nutritionistUseCase;
@@ -68,6 +74,8 @@ public class UserController {
     this.assignStudentToNutritionistUseCase = assignStudentToNutritionistUseCase;
     this.findStudentByEmailForNutritionistUseCase = findStudentByEmailForNutritionistUseCase;
     this.updateAvatarUseCase = updateAvatarUseCase;
+    this.imageValidator = imageValidator;
+    this.userRepository = userRepository;
   }
 
   @PostMapping("/register/personal")
@@ -93,7 +101,7 @@ public class UserController {
 
   @GetMapping("/students")
   public ResponseEntity<List<StudentSummaryResponse>> getMyStudents(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getTrainerStudentsUseCase.execute(currentUser.getId()));
   }
 
@@ -106,20 +114,20 @@ public class UserController {
 
   @PostMapping("/{studentId}/assign-trainer")
   public ResponseEntity<Void> assignTrainer(@PathVariable UUID studentId,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     assignStudentToTrainerUseCase.execute(studentId, currentUser.getId());
     return ResponseEntity.ok().build();
   }
 
   @GetMapping("/my-students/nutritionist")
   public ResponseEntity<List<StudentSummaryResponse>> getNutritionistStudents(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(getNutritionistStudentsUseCase.execute(currentUser.getId()));
   }
 
   @PostMapping("/{studentId}/assign-nutritionist")
   public ResponseEntity<Void> assignNutritionist(@PathVariable UUID studentId,
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     assignStudentToNutritionistUseCase.execute(studentId, currentUser.getId());
     return ResponseEntity.ok().build();
   }
@@ -133,27 +141,45 @@ public class UserController {
 
   @GetMapping("/me")
   public ResponseEntity<UserProfileResponse> getProfile(
-      @AuthenticationPrincipal UserEntity currentUser) {
+      @AuthenticationPrincipal UserPrincipal currentUser) {
     return ResponseEntity.ok(new UserProfileResponse(
         currentUser.getFirstName() + " " + currentUser.getLastName(),
         currentUser.getEmail(),
-        currentUser.getAvatar() != null));
+        userRepository.hasAvatar(currentUser.getId())));
   }
 
   @GetMapping(value = "/me/avatar", produces = MediaType.IMAGE_JPEG_VALUE)
-  public ResponseEntity<byte[]> getAvatar(@AuthenticationPrincipal UserEntity currentUser) {
-    byte[] avatar = currentUser.getAvatar();
-    if (avatar == null || avatar.length == 0) {
-      return ResponseEntity.notFound().build();
-    }
-    return ResponseEntity.ok(avatar);
+  public ResponseEntity<byte[]> getAvatar(@AuthenticationPrincipal UserPrincipal currentUser) {
+    return userRepository.findById(currentUser.getId())
+        .map(entity -> {
+          byte[] avatar = entity.getAvatar();
+          if (avatar == null || avatar.length == 0) {
+            return ResponseEntity.notFound().<byte[]>build();
+          }
+          return ResponseEntity.ok(avatar);
+        })
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PostMapping("/push-token")
+  public ResponseEntity<Void> savePushToken(
+      @RequestBody Map<String, String> body,
+      @AuthenticationPrincipal UserPrincipal currentUser) {
+    String token = body.get("pushToken");
+    if (token == null || token.isBlank()) return ResponseEntity.badRequest().build();
+    userRepository.findById(currentUser.getId()).ifPresent(entity -> {
+      entity.setPushToken(token);
+      userRepository.save(entity);
+    });
+    return ResponseEntity.ok().build();
   }
 
   @PatchMapping("/me/avatar")
   public ResponseEntity<Void> updateAvatar(
       @RequestParam("file") MultipartFile file,
-      @AuthenticationPrincipal UserEntity currentUser) throws Exception {
-    updateAvatarUseCase.execute(currentUser.getId(), file.getBytes());
+      @AuthenticationPrincipal UserPrincipal currentUser) throws Exception {
+    byte[] bytes = imageValidator.validateAndRead(file);
+    updateAvatarUseCase.execute(currentUser.getId(), bytes);
     return ResponseEntity.ok().build();
   }
 }
