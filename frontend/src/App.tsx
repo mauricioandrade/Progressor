@@ -17,6 +17,7 @@ import { StudentDietPage } from './pages/StudentDietPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VisualProgressPage } from './pages/VisualProgressPage';
 import { StudentDetailPage } from './pages/StudentDetailPage';
+import { ChatPage } from './pages/ChatPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RestTimerProvider } from './contexts/RestTimerContext';
 import { RestTimerPill } from './components/RestTimerPill';
@@ -67,6 +68,8 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/progress" element={<VisualProgressPage />} />
             <Route path="/professional/student/:studentId" element={<StudentDetailPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/chat/:partnerId" element={<ChatPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

@@ -80,3 +80,34 @@ export interface Patient {
   name: string;
   email: string;
 }
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string | null;
+  hasImage: boolean;
+  sentAt: string;
+  readAt: string | null;
+}
+
+export interface ConversationSummary {
+  partnerId: string;
+  partnerName: string;
+  lastMessageContent: string | null;
+  lastMessageAt: string;
+  unreadCount: number;
+}
+
+export interface ProfessionalDashboardStudent {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  lastCheckIn: string | null;
+  checkInsLast7Days: number | null;
+  lastFeedbackRating: number | null;
+  lastFeedbackComment: string | null;
+  lastFeedbackDate: string | null;
+  lastFoodLogDate: string | null;
+  todayAdherencePct: number | null;
+}

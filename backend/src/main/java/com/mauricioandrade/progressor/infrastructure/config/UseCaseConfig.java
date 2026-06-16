@@ -1,8 +1,13 @@
 package com.mauricioandrade.progressor.infrastructure.config;
 
+import com.mauricioandrade.progressor.core.application.ports.ChatRepository;
 import com.mauricioandrade.progressor.core.application.ports.CheckInRepository;
+import com.mauricioandrade.progressor.core.application.ports.ConnectionRequestRepository;
 import com.mauricioandrade.progressor.core.application.ports.PushNotificationPort;
 import com.mauricioandrade.progressor.core.application.ports.MealConsumptionLogRepository;
+import com.mauricioandrade.progressor.core.application.usecases.SendMessageUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetConversationUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetConversationsUseCase;
 import com.mauricioandrade.progressor.core.application.ports.WorkoutSessionRepository;
 import com.mauricioandrade.progressor.core.application.usecases.SaveWorkoutSessionUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetMyWorkoutSessionsUseCase;
@@ -13,6 +18,7 @@ import com.mauricioandrade.progressor.core.application.usecases.GetTodayConsumpt
 import com.mauricioandrade.progressor.core.application.usecases.LogExtraFoodUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.ToggleMealConsumptionUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.SubmitWorkoutFeedbackUseCase;
+import com.mauricioandrade.progressor.core.application.usecases.GetProfessionalDashboardUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetStudentFeedbacksUseCase;
 import com.mauricioandrade.progressor.core.application.usecases.GetTodayFeedbackUseCase;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataWorkoutLogRepository;
@@ -448,5 +454,32 @@ public class UseCaseConfig {
   public GetStudentFeedbacksUseCase getStudentFeedbacksUseCase(
       WorkoutFeedbackRepository feedbackRepository) {
     return new GetStudentFeedbacksUseCase(feedbackRepository);
+  }
+
+  @Bean
+  public SendMessageUseCase sendMessageUseCase(ChatRepository chatRepository,
+      UserRepository userRepository, ConnectionRequestRepository connectionRepo,
+      PushNotificationPort pushNotificationPort) {
+    return new SendMessageUseCase(chatRepository, userRepository, connectionRepo, pushNotificationPort);
+  }
+
+  @Bean
+  public GetConversationUseCase getConversationUseCase(ChatRepository chatRepository) {
+    return new GetConversationUseCase(chatRepository);
+  }
+
+  @Bean
+  public GetConversationsUseCase getConversationsUseCase(ChatRepository chatRepository) {
+    return new GetConversationsUseCase(chatRepository);
+  }
+
+  @Bean
+  public GetProfessionalDashboardUseCase getProfessionalDashboardUseCase(
+      UserRepository userRepository, CheckInRepository checkInRepository,
+      WorkoutFeedbackRepository feedbackRepository,
+      MealConsumptionLogRepository mealConsumptionLogRepository,
+      MealPlanRepository mealPlanRepository) {
+    return new GetProfessionalDashboardUseCase(userRepository, checkInRepository,
+        feedbackRepository, mealConsumptionLogRepository, mealPlanRepository);
   }
 }

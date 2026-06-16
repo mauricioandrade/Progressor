@@ -118,6 +118,9 @@ public class SecurityConfig {
             .hasAnyRole("PERSONALTRAINER", "NUTRITIONIST")
             .requestMatchers(HttpMethod.PATCH, "/api/progress-photos/*/student-notes")
             .hasRole("STUDENT")
+            .requestMatchers(HttpMethod.GET, "/api/professional/dashboard")
+            .hasAnyRole("PERSONALTRAINER", "NUTRITIONIST")
+            .requestMatchers("/api/chat/**").authenticated()
             .anyRequest().authenticated())
         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(rateLimitFilter, SecurityFilter.class).build();

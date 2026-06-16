@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
 import { authService } from '../services/auth';
+import { useConversations } from '../hooks/queries';
 import {
     LayoutDashboard,
     Dumbbell,
@@ -14,7 +15,8 @@ import {
     UtensilsCrossed,
     Salad,
     Settings,
-    Camera
+    Camera,
+    MessageSquare,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -28,11 +30,20 @@ export function Sidebar({ role }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
+    const { data: conversations = [] } = useConversations();
+    const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
 
     async function handleLogout() {
         await authService.signOut();
         navigate('/login', { replace: true });
     }
+
+    const chatItem = {
+        label: 'Chat',
+        path: '/chat',
+        icon: <MessageSquare className={iconClass} />,
+        badge: totalUnread > 0 ? totalUnread : undefined,
+    };
 
     const menuItems = {
         STUDENT: [
@@ -41,6 +52,7 @@ export function Sidebar({ role }: SidebarProps) {
             { label: t('sidebar.my_diet'), path: '/my-diet', icon: <Salad className={iconClass} /> },
             { label: t('sidebar.measurements'), path: '/measurements', icon: <Activity className={iconClass} /> },
             { label: t('sidebar.visual_progress'), path: '/progress', icon: <Camera className={iconClass} /> },
+            chatItem,
             { label: t('sidebar.settings'), path: '/settings', icon: <Settings className={iconClass} /> },
         ],
         PERSONALTRAINER: [
@@ -48,12 +60,14 @@ export function Sidebar({ role }: SidebarProps) {
             { label: t('sidebar.students'), path: '/students', icon: <Users className={iconClass} /> },
             { label: t('sidebar.create_workout'), path: '/workouts/new', icon: <Dumbbell className={iconClass} /> },
             { label: t('sidebar.new_assessment'), path: '/assessments/new', icon: <Ruler className={iconClass} /> },
+            chatItem,
             { label: t('sidebar.settings'), path: '/settings', icon: <Settings className={iconClass} /> },
         ],
         NUTRITIONIST: [
             { label: t('sidebar.dashboard'), path: '/dashboard', icon: <LayoutDashboard className={iconClass} /> },
             { label: t('sidebar.my_patients'), path: '/diet/patients', icon: <Users className={iconClass} /> },
             { label: t('sidebar.diet_builder'), path: '/diet/builder', icon: <UtensilsCrossed className={iconClass} /> },
+            chatItem,
             { label: t('sidebar.settings'), path: '/settings', icon: <Settings className={iconClass} /> },
         ]
     };
@@ -71,7 +85,8 @@ export function Sidebar({ role }: SidebarProps) {
                 </div>
                 <nav className="space-y-0.5 flex-1">
                     {menuItems[role].map((item) => {
-                        const isActive = location.pathname === item.path;
+                        const isActive = location.pathname.startsWith(item.path) && (item.path !== '/dashboard' || location.pathname === '/dashboard');
+                        const badge = 'badge' in item ? item.badge : undefined;
                         return (
                             <Link
                                 key={item.path}
@@ -83,7 +98,12 @@ export function Sidebar({ role }: SidebarProps) {
                                 }`}
                             >
                                 {item.icon}
-                                {item.label}
+                                <span className="flex-1">{item.label}</span>
+                                {badge != null && (
+                                    <span className="min-w-[20px] h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                                        {badge > 99 ? '99+' : badge}
+                                    </span>
+                                )}
                             </Link>
                         );
                     })}

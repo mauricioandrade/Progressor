@@ -1,15 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../services/api';
+import { api, fetchConversations, fetchMessages } from '../services/api';
 import type {
   WorkoutExercise, Measurement, PersonalRecord, MealPlan,
   WaterIntake, UserProfile, ConnectionInvite, ExerciseStats,
-  Student, Patient,
+  Student, Patient, ProfessionalDashboardStudent,
+  ChatMessage, ConversationSummary,
 } from '../types/api';
 
 export { useQueryClient } from '@tanstack/react-query';
-export type { WorkoutExercise, Measurement, PersonalRecord, MealPlan, WaterIntake, UserProfile, ConnectionInvite, ExerciseStats, Student, Patient } from '../types/api';
+export type { WorkoutExercise, Measurement, PersonalRecord, MealPlan, WaterIntake, UserProfile, ConnectionInvite, ExerciseStats, Student, Patient, ProfessionalDashboardStudent, ChatMessage, ConversationSummary } from '../types/api';
 
 export const QK = {
+  conversations:      ['chat', 'conversations'],
+  messages:           (partnerId: string) => ['chat', 'messages', partnerId],
   myWorkouts:           ['workouts', 'my'],
   myPRs:                ['workouts', 'prs'],
   exerciseStats:        ['workouts', 'exercise-stats'],
@@ -24,6 +27,7 @@ export const QK = {
   nutritionistStudents: ['users', 'nutritionist', 'students'],
   pendingConnections:   ['connections', 'pending'],
   professionalCount:    (endpoint: string) => ['professional', 'count', endpoint],
+  professionalDashboard: ['professional', 'dashboard'],
 } as const;
 
 export function useMyWorkouts() {
@@ -127,5 +131,31 @@ export function useProfessionalCount(endpoint: string) {
   return useQuery<number>({
     queryKey: QK.professionalCount(endpoint),
     queryFn: () => api.get(endpoint).then(r => (r.data.length as number)),
+  });
+}
+
+export function useProfessionalDashboard() {
+  return useQuery<ProfessionalDashboardStudent[]>({
+    queryKey: QK.professionalDashboard,
+    queryFn: () => api.get<ProfessionalDashboardStudent[]>('/professional/dashboard').then(r => r.data),
+  });
+}
+
+export function useConversations() {
+  return useQuery<ConversationSummary[]>({
+    queryKey: QK.conversations,
+    queryFn: fetchConversations,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+  });
+}
+
+export function useMessages(partnerId: string) {
+  return useQuery<ChatMessage[]>({
+    queryKey: QK.messages(partnerId),
+    queryFn: () => fetchMessages(partnerId),
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
+    enabled: !!partnerId,
   });
 }
