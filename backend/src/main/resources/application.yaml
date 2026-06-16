@@ -6,8 +6,6 @@ spring:
     name: progressor
 
   config:
-    # Loads backend/.env (KEY=VALUE format) as a properties file.
-    # "optional:" means the app still starts if the file is absent (e.g. in CI/Docker).
     import: optional:file:.env[.properties]
 
   datasource:
@@ -15,15 +13,24 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:progressorv1}
     password: ${SPRING_DATASOURCE_PASSWORD:progressorv1}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      keepalive-time: 60000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=2h
 
   flyway:
     enabled: true
@@ -44,6 +51,20 @@ spring:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  cookie:
+    secure: ${COOKIE_SECURE:false}
+    same-site: ${COOKIE_SAME_SITE:Lax}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 encryption:
-  key: ${ENCRYPTION_KEY:0000000000000000000000000000000000000000000000000000000000000000}
+  key: ${ENCRYPTION_KEY}

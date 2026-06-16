@@ -29,6 +29,10 @@ public class SendConnectionRequestUseCase {
       throw new IllegalStateException("A pending invitation already exists for this student");
     }
 
+    if (connectionRequestRepository.existsAcceptedConnection(professionalId, student.getId(), role)) {
+      throw new IllegalStateException("Connection already exists for this student");
+    }
+
     String professionalName = professional.getFirstName() + " " + professional.getLastName();
     var request = new ConnectionRequest(null, professionalId, student.getId(), professionalName, role);
     connectionRequestRepository.save(request);

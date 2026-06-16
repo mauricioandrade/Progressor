@@ -8,8 +8,13 @@ import com.mauricioandrade.progressor.infrastructure.api.dto.LoginResponse;
 import com.mauricioandrade.progressor.infrastructure.api.dto.ResetPasswordRequest;
 import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
 import com.mauricioandrade.progressor.infrastructure.security.jwt.TokenService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.hibernate.Hibernate;
+import java.time.Duration;
+import java.time.Instant;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +32,12 @@ public class AuthController {
   private final ForgotPasswordUseCase forgotPasswordUseCase;
   private final ResetPasswordUseCase resetPasswordUseCase;
 
+  @Value("${app.cookie.secure:false}")
+  private boolean cookieSecure;
+
+  @Value("${app.cookie.same-site:Lax}")
+  private String cookieSameSite;
+
   public AuthController(AuthenticationManager authenticationManager, TokenService tokenService,
       ForgotPasswordUseCase forgotPasswordUseCase, ResetPasswordUseCase resetPasswordUseCase) {
     this.authenticationManager = authenticationManager;
@@ -36,18 +47,41 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+  public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request,
+      HttpServletResponse response) {
     var usernamePassword = new UsernamePasswordAuthenticationToken(request.email(),
         request.password());
     var auth = this.authenticationManager.authenticate(usernamePassword);
 
     var user = (UserEntity) auth.getPrincipal();
+    String role = user.getRole();
+    String token = tokenService.generateToken(user.getEmail(), role, user.getId().toString());
 
-    String role = Hibernate.getClass(user).getSimpleName().replace("Entity", "").toUpperCase();
+    ResponseCookie cookie = ResponseCookie.from("jwt", token)
+        .httpOnly(true)
+        .secure(cookieSecure)
+        .path("/")
+        .maxAge(Duration.ofHours(8))
+        .sameSite(cookieSameSite)
+        .build();
+    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-    var token = tokenService.generateToken(user.getEmail(), role, user.getId().toString());
+    String expiresAt = Instant.now().plusSeconds(8 * 3600).toString();
+    return ResponseEntity.ok(
+        new LoginResponse(user.getId().toString(), user.getEmail(), role, expiresAt));
+  }
 
-    return ResponseEntity.ok(new LoginResponse(token));
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout(HttpServletResponse response) {
+    ResponseCookie cookie = ResponseCookie.from("jwt", "")
+        .httpOnly(true)
+        .secure(cookieSecure)
+        .path("/")
+        .maxAge(0)
+        .sameSite(cookieSameSite)
+        .build();
+    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    return ResponseEntity.ok().build();
   }
 
   @PostMapping("/forgot-password")
@@ -58,7 +92,7 @@ public class AuthController {
 
   @PostMapping("/reset-password")
   public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-    boolean success = resetPasswordUseCase.execute(request.token(), request.newPassword());
-    return success ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+    resetPasswordUseCase.execute(request.token(), request.newPassword());
+    return ResponseEntity.ok().build();
   }
 }

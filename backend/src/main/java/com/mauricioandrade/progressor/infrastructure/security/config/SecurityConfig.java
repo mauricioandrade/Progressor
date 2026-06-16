@@ -1,11 +1,15 @@
 package com.mauricioandrade.progressor.infrastructure.security.config;
 
+import com.mauricioandrade.progressor.infrastructure.security.RateLimitFilter;
 import com.mauricioandrade.progressor.infrastructure.security.jwt.SecurityFilter;
 import java.util.Arrays;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -24,9 +29,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final SecurityFilter securityFilter;
+  private final RateLimitFilter rateLimitFilter;
 
-  public SecurityConfig(SecurityFilter securityFilter) {
+  @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:5174}")
+  private List<String> allowedOrigins;
+
+  public SecurityConfig(SecurityFilter securityFilter, RateLimitFilter rateLimitFilter) {
     this.securityFilter = securityFilter;
+    this.rateLimitFilter = rateLimitFilter;
   }
 
   @Bean
@@ -34,14 +44,23 @@ public class SecurityConfig {
     return httpSecurity.cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(AbstractHttpConfigurer::disable).sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .headers(headers -> headers
+            .contentSecurityPolicy(csp -> csp.policyDirectives(
+                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"))
+            .referrerPolicy(ref -> ref.policy(
+                ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+            .frameOptions(frame -> frame.deny())
+            .contentTypeOptions(Customizer.withDefaults()))
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/users/register/personal").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/users/register/student").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/users/register/nutritionist").permitAll()
             .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/connections/invite").hasAnyRole("PERSONALTRAINER", "NUTRITIONIST")
             .requestMatchers(HttpMethod.GET, "/api/users/students").hasRole("PERSONALTRAINER")
             .requestMatchers(HttpMethod.GET, "/api/users/students/search")
             .hasRole("PERSONALTRAINER")
@@ -87,6 +106,7 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/users/me/avatar").authenticated()
             .requestMatchers(HttpMethod.PATCH, "/api/users/me/avatar").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/users/push-token").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/progress-photos").hasRole("STUDENT")
             .requestMatchers(HttpMethod.GET, "/api/progress-photos/my").hasRole("STUDENT")
             .requestMatchers(HttpMethod.DELETE, "/api/progress-photos/*/feedback")
@@ -99,7 +119,8 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.PATCH, "/api/progress-photos/*/student-notes")
             .hasRole("STUDENT")
             .anyRequest().authenticated())
-        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class).build();
+        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(rateLimitFilter, SecurityFilter.class).build();
   }
 
   @Bean
@@ -116,12 +137,7 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    // Adicionado o domínio do Render para permitir a comunicação com o Frontend
-    configuration.setAllowedOrigins(Arrays.asList(
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "https://progressor-web.onrender.com"
-    ));
+    configuration.setAllowedOrigins(allowedOrigins);
     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept-Language"));
     configuration.setAllowCredentials(true);

@@ -2,6 +2,7 @@ package com.mauricioandrade.progressor.infrastructure.security.services;
 
 import com.mauricioandrade.progressor.infrastructure.persistence.converters.SearchableEncryptedStringConverter;
 import com.mauricioandrade.progressor.infrastructure.persistence.repositories.SpringDataUserRepository;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,8 +23,9 @@ public class AuthorizationService implements UserDetailsService {
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     // Try encrypted form first; fall back to plaintext for legacy rows before migration
     String encryptedUsername = SearchableEncryptedStringConverter.encrypt(username);
-    return userRepository.findByEmail(encryptedUsername)
+    var entity = userRepository.findByEmail(encryptedUsername)
         .or(() -> userRepository.findByEmail(username))
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    return UserPrincipal.from(entity);
   }
 }

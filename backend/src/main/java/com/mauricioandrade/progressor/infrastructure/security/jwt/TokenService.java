@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TokenService {
 
-  @Value("${api.security.token.secret:my-secret-key-progressor-v1}")
+  @Value("${api.security.token.secret}")
   private String secret;
 
   public String generateToken(String email, String role, String userId) {

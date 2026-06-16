@@ -46,13 +46,18 @@ public class ConnectionRequestRepositoryAdapter implements ConnectionRequestRepo
   }
 
   @Override
-  public List<ConnectionRequest> findByProfessionalId(UUID professionalId) {
-    return springDataRepository.findByProfessionalId(professionalId)
+  public List<ConnectionRequest> findByProfessionalId(UUID professionalId, ProfessionalRole role) {
+    return springDataRepository.findByProfessionalIdAndProfessionalRole(professionalId, role.name())
         .stream().map(ConnectionRequestMapper::toDomain).toList();
   }
 
   @Override
   public boolean existsPendingRequest(UUID professionalId, UUID studentId, ProfessionalRole role) {
     return springDataRepository.existsPendingRequest(professionalId, studentId, role.name());
+  }
+
+  @Override
+  public boolean existsAcceptedConnection(UUID professionalId, UUID studentId, ProfessionalRole role) {
+    return springDataRepository.existsAcceptedConnection(professionalId, studentId, role.name());
   }
 }

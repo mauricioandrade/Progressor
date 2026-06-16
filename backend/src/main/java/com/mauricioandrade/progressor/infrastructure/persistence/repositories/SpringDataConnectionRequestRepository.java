@@ -12,9 +12,13 @@ public interface SpringDataConnectionRequestRepository
 
   List<ConnectionRequestEntity> findByStudentIdAndStatus(UUID studentId, String status);
 
-  List<ConnectionRequestEntity> findByProfessionalId(UUID professionalId);
+  List<ConnectionRequestEntity> findByProfessionalIdAndProfessionalRole(UUID professionalId, String professionalRole);
 
   @Query("SELECT COUNT(r) > 0 FROM ConnectionRequestEntity r WHERE r.professionalId = :professionalId AND r.studentId = :studentId AND r.professionalRole = :role AND r.status = 'PENDING'")
   boolean existsPendingRequest(@Param("professionalId") UUID professionalId,
+      @Param("studentId") UUID studentId, @Param("role") String role);
+
+  @Query("SELECT COUNT(r) > 0 FROM ConnectionRequestEntity r WHERE r.professionalId = :professionalId AND r.studentId = :studentId AND r.professionalRole = :role AND r.status = 'ACCEPTED'")
+  boolean existsAcceptedConnection(@Param("professionalId") UUID professionalId,
       @Param("studentId") UUID studentId, @Param("role") String role);
 }

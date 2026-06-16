@@ -17,7 +17,9 @@ public interface ConnectionRequestRepository {
 
   List<ConnectionRequest> findByStudentIdAndStatus(UUID studentId, ConnectionStatus status);
 
-  List<ConnectionRequest> findByProfessionalId(UUID professionalId);
+  List<ConnectionRequest> findByProfessionalId(UUID professionalId, ProfessionalRole role);
 
   boolean existsPendingRequest(UUID professionalId, UUID studentId, ProfessionalRole role);
+
+  boolean existsAcceptedConnection(UUID professionalId, UUID studentId, ProfessionalRole role);
 }

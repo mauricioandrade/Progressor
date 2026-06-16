@@ -32,8 +32,14 @@ public class RespondToConnectionRequestUseCase {
           .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
       if (request.getProfessionalRole() == ProfessionalRole.COACH) {
+        if (student.getPersonalTrainerId() != null) {
+          throw new IllegalStateException("Student already has an active personal trainer");
+        }
         student.assignPersonalTrainer(request.getProfessionalId());
       } else {
+        if (student.getNutritionistId() != null) {
+          throw new IllegalStateException("Student already has an active nutritionist");
+        }
         student.assignNutritionist(request.getProfessionalId());
       }
       userRepository.update(student);

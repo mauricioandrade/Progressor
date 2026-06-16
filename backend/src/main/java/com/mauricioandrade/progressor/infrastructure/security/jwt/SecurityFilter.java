@@ -1,6 +1,6 @@
 package com.mauricioandrade.progressor.infrastructure.security.jwt;
 
-import com.mauricioandrade.progressor.infrastructure.persistence.entities.UserEntity;
+import com.mauricioandrade.progressor.infrastructure.security.UserPrincipal;
 import com.mauricioandrade.progressor.infrastructure.security.services.AuthorizationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import org.hibernate.Hibernate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,13 +36,13 @@ public class SecurityFilter extends OncePerRequestFilter {
 
       if (email != null && !email.isEmpty()) {
         try {
-          var user = (UserEntity) authorizationService.loadUserByUsername(email);
-          String roleName = Hibernate.getClass(user).getSimpleName().replace("Entity", "")
-              .toUpperCase();
-          var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleName));
+          var user = (UserPrincipal) authorizationService.loadUserByUsername(email);
+          var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
           var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
           SecurityContextHolder.getContext().setAuthentication(authentication);
-        } catch (UsernameNotFoundException ignored) {
+        } catch (UsernameNotFoundException e) {
+          response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+          return;
         }
       }
     }
@@ -51,10 +50,17 @@ public class SecurityFilter extends OncePerRequestFilter {
   }
 
   private String recoverToken(HttpServletRequest request) {
-    var authHeader = request.getHeader("Authorization");
-    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-      return null;
+    if (request.getCookies() != null) {
+      for (var cookie : request.getCookies()) {
+        if ("jwt".equals(cookie.getName())) {
+          return cookie.getValue();
+        }
+      }
     }
-    return authHeader.substring(7);
+    var authHeader = request.getHeader("Authorization");
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+      return authHeader.substring(7);
+    }
+    return null;
   }
 }
